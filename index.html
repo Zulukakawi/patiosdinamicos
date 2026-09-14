@@ -488,7 +488,21 @@ body.modo-hoy .panel-hoy { display: block; }
   width: 100%; min-width: 110px; padding: 4px 6px; border: 1px solid var(--hormigon-2);
   border-radius: 6px; font-family: var(--fuente-cuerpo); font-size: 12px;
 }
-.tabla-rotacion input { margin-top: 4px; }
+.tabla-rotacion input, .tabla-rotacion select + select { margin-top: 4px; }
+/* Celdas compactas: resumen pulsable; edición en sitio al tocar */
+.tabla-rotacion td.celda-rot { padding: 0; min-width: 118px; }
+.celda-resumen {
+  display: block; width: 100%; min-height: 46px; text-align: left; cursor: pointer;
+  background: none; border: none; padding: 7px 8px; border-radius: 0;
+  font-family: var(--fuente-cuerpo); font-size: 12.5px; color: var(--tinta); line-height: 1.3;
+}
+.celda-resumen:hover { background: var(--hormigon); }
+.celda-resumen strong { display: block; }
+.celda-resumen .act { display: block; font-size: 11.5px; color: var(--tinta-suave); }
+.celda-resumen .resp { display: block; font-size: 11px; color: var(--tinta-suave); }
+.celda-resumen .celda-vacia { color: var(--tinta-suave); opacity: .65; }
+.tabla-rotacion td.celda-rot.editando { padding: 6px; background: #fff; outline: 2px solid var(--z-cognitiva); outline-offset: -2px; }
+.tabla-rotacion .celda-listo { margin-top: 5px; width: 100%; }
 
 /* ---------- Móvil: navegación horizontal arriba, una sola columna ---------- */
 @media (max-width: 700px) {
@@ -3379,6 +3393,60 @@ function autoguardarRotacion() {
   }, 500);
 }
 
+/* Celda de la tabla de rotación en modo resumen (grupo · actividad · responsable).
+   Antes cada celda llevaba siempre 3 controles y la tabla era una pared de selects. */
+function resumenCeldaRot(celda, z, d) {
+  const vacia = !celda.grupo && !celda.actividad && !celda.responsable;
+  const etiqueta = `${z.nombre}, ${DIAS_SEMANA[d]}`;
+  if (vacia) return `<button type="button" class="celda-resumen" aria-label="Asignar ${esc(etiqueta)}"><span class="celda-vacia">＋ asignar</span></button>`;
+  return `<button type="button" class="celda-resumen" aria-label="Editar ${esc(etiqueta)}">
+    <strong>${esc(celda.grupo || '—')}</strong>
+    ${celda.actividad ? `<span class="act">${esc(celda.actividad)}</span>` : ''}
+    ${celda.responsable ? `<span class="resp">🧑‍🏫 ${esc(celda.responsable)}</span>` : ''}
+  </button>`;
+}
+
+// Abre una celda para editarla en sitio (cierra la que estuviera abierta)
+function abrirCeldaRot(td) {
+  document.querySelectorAll('td.celda-rot.editando').forEach(cerrarCeldaRot);
+  const d = +td.dataset.dia, zonaId = td.dataset.zona;
+  const celda = rotacionActual.dias[d][zonaId] || (rotacionActual.dias[d][zonaId] = {});
+  // Si la celda guarda un grupo o responsable ya eliminado, se conserva como opción para no perderlo en silencio
+  const opciones = [...new Set([...(celda.grupo ? [celda.grupo] : []), ...rotacionActual.grupos])];
+  const opcResp = [...new Set([...(celda.responsable ? [celda.responsable] : []), ...rotacionActual.responsables])];
+  td.classList.add('editando');
+  td.innerHTML = `
+    <select data-campo="grupo" aria-label="Grupo">
+      <option value="">— grupo —</option>
+      ${opciones.map(g => `<option ${g === celda.grupo ? 'selected' : ''}>${esc(g)}</option>`).join('')}
+    </select>
+    <input data-campo="actividad" placeholder="Actividad" aria-label="Actividad" value="${esc(celda.actividad || '')}">
+    <select data-campo="responsable" aria-label="Responsable (profe voluntario)">
+      <option value="">— responsable —</option>
+      ${opcResp.map(r => `<option ${r === celda.responsable ? 'selected' : ''}>${esc(r)}</option>`).join('')}
+    </select>
+    <button type="button" class="boton pequeno celda-listo">✓ Listo</button>`;
+  td.querySelectorAll('[data-campo]').forEach(el => el.addEventListener('change', () => {
+    celda[el.dataset.campo] = el.value.trim();
+    autoguardarRotacion();
+  }));
+  td.querySelector('.celda-listo').addEventListener('click', e => { e.stopPropagation(); cerrarCeldaRot(td); });
+  td.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarCeldaRot(td); });
+  // Al salir de la celda con el foco (tab, toque en otra) se vuelve al resumen
+  td.addEventListener('focusout', () => setTimeout(() => {
+    if (td.classList.contains('editando') && !td.contains(document.activeElement)) cerrarCeldaRot(td);
+  }, 0));
+  td.querySelector('select').focus();
+}
+
+function cerrarCeldaRot(td) {
+  const d = +td.dataset.dia, zonaId = td.dataset.zona;
+  const z = zonas.find(x => x.id === zonaId);
+  if (!z) return;
+  td.classList.remove('editando');
+  td.innerHTML = resumenCeldaRot(rotacionActual.dias[d][zonaId] || {}, z, d);
+}
+
 async function pintarRotacion() {
   const cont = $('contenido-rotacion');
   if (!rotacionActual) {
@@ -3407,7 +3475,7 @@ async function pintarRotacion() {
 
   html += '<div class="fila-botones" style="margin-bottom:12px;">' +
     '<button class="boton secundario" id="btn-generar-rotacion">🔄 Generar rotación automática</button>' +
-    '<span id="estado-rotacion" style="font-size:12px; color:var(--tinta-suave); align-self:center;">Los cambios se guardan solos en este dispositivo.</span></div>';
+    '<span id="estado-rotacion" style="font-size:12px; color:var(--tinta-suave); align-self:center;">Toca una celda para cambiarla · los cambios se guardan solos.</span></div>';
 
   html += '<div class="envoltura-tabla"><table class="tabla-rotacion"><thead><tr><th>Zona</th>';
   DIAS_SEMANA.forEach((d, i) => { html += `<th class="${i === diaHoy ? 'hoy' : ''}">${d}${i === diaHoy ? ' · hoy' : ''}</th>`; });
@@ -3415,22 +3483,8 @@ async function pintarRotacion() {
   for (const z of zonas) {
     html += `<tr><th>${etiquetaZona(z)}</th>`;
     for (let d = 0; d < 5; d++) {
-      const celda = rotacionActual.dias[d][z.id] || {};
-      // Si la celda guarda un grupo o responsable ya eliminado, se conserva como opción para no perderlo en silencio
-      const opciones = [...new Set([...(celda.grupo ? [celda.grupo] : []), ...rotacionActual.grupos])];
-      const opcResp = [...new Set([...(celda.responsable ? [celda.responsable] : []), ...rotacionActual.responsables])];
-      html += `<td class="${d === diaHoy ? 'hoy' : ''}">
-        <select data-dia="${d}" data-zona="${z.id}" data-campo="grupo">
-          <option value="">— grupo —</option>
-          ${opciones.map(g => `<option ${g === celda.grupo ? 'selected' : ''}>${esc(g)}</option>`).join('')}
-        </select>
-        <input data-dia="${d}" data-zona="${z.id}" data-campo="actividad" placeholder="Actividad"
-          value="${esc(celda.actividad || '')}">
-        <select data-dia="${d}" data-zona="${z.id}" data-campo="responsable" title="Responsable (profe voluntario)">
-          <option value="">— responsable —</option>
-          ${opcResp.map(r => `<option ${r === celda.responsable ? 'selected' : ''}>${esc(r)}</option>`).join('')}
-        </select>
-      </td>`;
+      // Celda compacta: resumen pulsable; los tres controles solo aparecen al abrirla
+      html += `<td class="celda-rot ${d === diaHoy ? 'hoy' : ''}" data-dia="${d}" data-zona="${z.id}">${resumenCeldaRot(rotacionActual.dias[d][z.id] || {}, z, d)}</td>`;
     }
     html += '</tr>';
   }
@@ -3467,14 +3521,9 @@ async function pintarRotacion() {
   });
   $('nuevo-responsable').addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-anadir-responsable').click(); });
 
-  cont.querySelectorAll('select[data-campo], input[data-campo]').forEach(el => {
-    el.addEventListener('change', () => {
-      const { dia, zona, campo } = el.dataset;
-      const c = rotacionActual.dias[dia][zona] || (rotacionActual.dias[dia][zona] = {});
-      c[campo] = el.value.trim();
-      autoguardarRotacion();
-    });
-  });
+  cont.querySelectorAll('td.celda-rot').forEach(td => td.addEventListener('click', e => {
+    if (!td.classList.contains('editando')) abrirCeldaRot(td);
+  }));
 
   $('btn-generar-rotacion').addEventListener('click', () => {
     const gs = rotacionActual.grupos;
