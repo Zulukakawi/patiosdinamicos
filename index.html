@@ -97,6 +97,7 @@ body {
   font-family: var(--fuente-titulo);
   font-weight: 800; font-size: 17px; line-height: 1.05;
 }
+.logo-caja .nombre span { display: block; }
 .logo-caja .region { font-size: 11px; opacity: .7; letter-spacing: .08em; text-transform: uppercase; }
 
 header.cabecera {
@@ -181,6 +182,14 @@ nav.principal .pie #btn-cambiar-perfil {
   padding: 4px 9px; margin-bottom: 7px;
 }
 nav.principal .pie #btn-cambiar-perfil:hover { background: rgba(255,255,255,.1); }
+/* Botón de cuenta de la barra superior (solo móvil; en escritorio va al pie del menú) */
+.logo-caja .cuenta-movil {
+  display: none; margin-left: auto; flex: none; max-width: 48%;
+  background: none; border: 1px solid rgba(255,255,255,.3); border-radius: 999px;
+  color: var(--tiza); font-family: var(--fuente-cuerpo); font-size: 12px; font-weight: 700; cursor: pointer;
+  padding: 6px 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.logo-caja .cuenta-movil.con-cuenta { border-color: rgba(255,255,255,.15); background: rgba(255,255,255,.1); }
 
 /* Tarjetas de la vista Centros (admin) */
 .rejilla-centros { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; max-width: 900px; }
@@ -480,30 +489,46 @@ body.modo-hoy .panel-hoy { display: block; }
 
 /* ---------- Móvil: navegación horizontal arriba, una sola columna ---------- */
 @media (max-width: 700px) {
+  /* Móvil: barra superior compacta (logo + cuenta), contenido, y las secciones
+     en una barra de pestañas fija abajo — al alcance del pulgar y todas visibles
+     a la vez (antes era una tira deslizable y la mitad quedaba fuera de pantalla). */
   body {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr;
-    grid-template-areas: "logo" "nav" "principal";
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas: "logo" "principal" "nav";
   }
   header.cabecera { display: none; }
-  .logo-caja { padding: 8px 14px; }
+  .logo-caja { padding: 7px 12px; gap: 8px; border-bottom: none; min-height: 44px; }
+  .logo-caja svg { width: 24px; height: 24px; }
+  .logo-caja .nombre { font-size: 15px; white-space: nowrap; }
+  .logo-caja .nombre span { display: inline; }
+  nav.principal button .largo { display: none; }
+  .logo-caja .region { display: none; }
+  .logo-caja .cuenta-movil { display: inline-block; }
   nav.principal {
     flex-direction: row; overflow-x: auto; overflow-y: hidden;
-    padding: 6px 8px; gap: 3px; align-items: center;
+    padding: 0; gap: 0; align-items: stretch;
+    border-top: 1px solid rgba(255,255,255,.14);
+    scrollbar-width: none;
   }
-  /* En móvil el botón de perfil sigue accesible; solo se oculta el texto de versión */
-  nav.principal .grupo, nav.principal .version-pie { display: none; }
-  nav.principal .pie { margin: 0; padding: 0 4px; border: none; flex: none; }
-  nav.principal .pie #btn-cambiar-perfil { margin: 0; white-space: nowrap; }
+  nav.principal::-webkit-scrollbar { display: none; }
+  nav.principal .grupo, nav.principal .pie { display: none; }
   nav.principal button {
-    white-space: nowrap; width: auto; flex: none;
-    border-left: none; border-bottom: 3px solid transparent; border-radius: 8px 8px 0 0;
+    flex: 1 0 0; min-width: 58px; width: auto;
+    flex-direction: column; justify-content: center; gap: 3px;
+    padding: 7px 3px 8px; border-radius: 0; text-align: center;
+    border-left: none; border-top: 3px solid transparent;
+    font-size: 10.5px; line-height: 1.1; color: rgba(255,255,255,.72); font-weight: 400;
   }
-  nav.principal button.activo { border-left: none; border-bottom: 3px solid var(--z-cognitiva); }
+  nav.principal button .ico { font-size: 21px; line-height: 1; }
+  nav.principal button .etq { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  nav.principal button.activo { border-left: none; border-top: 3px solid var(--z-cognitiva); background: var(--asfalto-2); color: var(--tiza); font-weight: 400; }
   #vista-editor.visible { grid-template-columns: 1fr; grid-template-rows: 52% 48%; }
   .buscador { left: 54px; right: 10px; }
   .buscador input { width: 100%; min-width: 0; }
-  .vista-mock { padding: 16px; }
+  .vista-mock { padding: 14px; }
+  .vista-mock h2 { font-size: 19px; }
+  .vista-mock > p { font-size: 13px; margin-bottom: 12px; }
 }
 
 /* ---------- Registro rápido de incidencias ---------- */
@@ -537,6 +562,8 @@ body.modo-hoy .panel-hoy { display: block; }
   font-weight: 700; font-size: 13px; color: var(--tinta);
 }
 .chips-curso button.elegido { border-color: var(--asfalto); background: var(--hormigon); }
+.chips-zona button { display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px; font-size: 12.5px; }
+.chips-zona .punto-zona { width: 11px; height: 11px; border-radius: 50%; flex: none; }
 .form-incidencia input[type=text] {
   width: 100%; padding: 10px 12px; border: 1.5px solid var(--hormigon-2);
   border-radius: 10px; font-family: var(--fuente-cuerpo); font-size: 13.5px;
@@ -714,7 +741,14 @@ body.modo-hoy .panel-hoy { display: block; }
 
 /* ---------- Panel del centro (gráficos) ---------- */
 #contenido-panel { max-width: 940px; display: flex; flex-direction: column; gap: 14px; }
-.panel-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.panel-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+@media (max-width: 700px) {
+  .panel-kpis { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .panel-kpis > .tile-dato:last-child:nth-child(odd) { grid-column: 1 / -1; } /* el impar suelto ocupa la fila */
+  .tile-dato { padding: 10px 12px; }
+  .tile-dato .etiq { font-size: 11px; }
+  .tile-dato .valor { font-size: 23px; }
+}
 .tile-dato {
   background: var(--tiza); border: 1px solid var(--hormigon-2); border-radius: var(--radio);
   padding: 12px 14px;
@@ -932,9 +966,10 @@ body.modo-hoy .panel-hoy { display: block; }
     <circle cx="15" cy="3" r="2.5" fill="#ffffff"/>
   </svg>
   <div>
-    <div class="nombre">Patios<br>Dinámicos</div>
+    <div class="nombre"><span>Patios</span> <span>Dinámicos</span></div>
     <div class="region">La Rioja</div>
   </div>
+  <button id="btn-cuenta-movil" class="cuenta-movil" title="Entrar con tu cuenta o cambiar de perfil">👤 Entrar</button>
 </div>
 
 <!-- ===================== Cabecera ===================== -->
@@ -946,16 +981,16 @@ body.modo-hoy .panel-hoy { display: block; }
 <!-- ===================== Navegación ===================== -->
 <nav class="principal">
   <div class="grupo">Mi centro</div>
-  <button class="activo" data-vista="vista-editor" data-titulo="Configurador de patio">🗺️ Patio y zonas</button>
-  <button data-vista="vista-rotacion" data-titulo="Rotación de zonas">🔄 Rotación</button>
-  <button data-vista="vista-incidencias" data-titulo="Registro de incidencia">📝 Incidencias</button>
-  <button data-vista="vista-ocupacion" data-titulo="Recuento de ocupación">🙌 Ocupación</button>
-  <button data-vista="vista-encuestas" data-titulo="Encuestas de bienestar">💬 Encuestas</button>
-  <button data-vista="vista-panel-centro" data-titulo="Panel del centro">📊 Mi panel</button>
+  <button class="activo" data-vista="vista-editor" data-titulo="Configurador de patio"><span class="ico">🗺️</span><span class="etq">Patio<span class="largo"> y zonas</span></span></button>
+  <button data-vista="vista-rotacion" data-titulo="Rotación de zonas"><span class="ico">🔄</span><span class="etq">Rotación</span></button>
+  <button data-vista="vista-incidencias" data-titulo="Registro de incidencia"><span class="ico">📝</span><span class="etq">Incidencias</span></button>
+  <button data-vista="vista-ocupacion" data-titulo="Recuento de ocupación"><span class="ico">🙌</span><span class="etq">Ocupación</span></button>
+  <button data-vista="vista-encuestas" data-titulo="Encuestas de bienestar"><span class="ico">💬</span><span class="etq">Encuestas</span></button>
+  <button data-vista="vista-panel-centro" data-titulo="Panel del centro"><span class="ico">📊</span><span class="etq">Mi panel</span></button>
   <div class="grupo solo-admin">Red regional</div>
-  <button class="solo-admin" data-vista="vista-centros" data-titulo="Centros y patios">🗂️ Centros</button>
-  <button class="solo-admin" data-vista="vista-regional" data-titulo="Panel de investigación regional">🔬 Investigación</button>
-  <button class="solo-admin" id="btn-nav-solicitudes" data-vista="vista-solicitudes" data-titulo="Solicitudes de acceso">✉️ Solicitudes</button>
+  <button class="solo-admin" data-vista="vista-centros" data-titulo="Centros y patios"><span class="ico">🗂️</span><span class="etq">Centros</span></button>
+  <button class="solo-admin" data-vista="vista-regional" data-titulo="Panel de investigación regional"><span class="ico">🔬</span><span class="etq">Investigación</span></button>
+  <button class="solo-admin" id="btn-nav-solicitudes" data-vista="vista-solicitudes" data-titulo="Solicitudes de acceso"><span class="ico">✉️</span><span class="etq">Solicitudes</span></button>
   <div class="pie">
     <button id="btn-cambiar-perfil" title="Entrar con tu cuenta o cambiar de perfil">👤 Entrar</button>
     <span class="version-pie">Piloto curso 2026-27<br>Orientación educativa de La Rioja</span>
@@ -2262,7 +2297,7 @@ capaPNOA.addTo(mapa);
 L.control.layers(
   { 'Satélite PNOA (IGN, más reciente)': capaPNOA, 'Satélite Esri (mundial)': capaEsri, 'Callejero IGN': capaCallejero },
   { 'Parcelas Catastro (líneas)': capaCatastro },
-  { position: 'topright', collapsed: false }
+  { position: 'topright', collapsed: true }
 ).addTo(mapa);
 
 mapa.on('overlayadd', e => {
@@ -3506,6 +3541,7 @@ function svgSelectorZona() {
   const vb = [minX - margen, minY - margen, (maxX - minX) + 2 * margen, (maxY - minY) + 2 * margen];
   const dim = Math.max(vb[2], vb[3]);
 
+  svgSelectorZona.sinNombre = []; // zonas cuyo nombre no cupo en el plano (van en la leyenda)
   let svg = `<svg viewBox="${vb.join(' ')}" xmlns="http://www.w3.org/2000/svg">`;
   const perPts = perimetroLayer.toGeoJSON().geometry.coordinates[0].map(proy)
     .map(p => p.map(v => v.toFixed(2)).join(',')).join(' ');
@@ -3519,8 +3555,35 @@ function svgSelectorZona() {
     const [cx, cy] = proy(turf.centerOfMass(z.layer.toGeoJSON()).geometry.coordinates);
     svg += `<text x="${cx}" y="${cy}" text-anchor="middle" font-size="${dim * 0.055}"
       style="pointer-events:none;">${z.icono || ''}</text>`;
+    // Nombre bajo el icono, solo si cabe dentro de la zona (hasta dos líneas);
+    // si no cabe, el chip de la leyenda lo identifica.
+    const ptsXY = z.layer.toGeoJSON().geometry.coordinates[0].map(proy);
+    const anchoZona = Math.max(...ptsXY.map(q => q[0])) - Math.min(...ptsXY.map(q => q[0]));
+    const altoZona = Math.max(...ptsXY.map(q => q[1])) - Math.min(...ptsXY.map(q => q[1]));
+    const fs = dim * 0.032;
+    const lineas = partirEnLineas(z.nombre, Math.floor((anchoZona * 0.9) / (fs * 0.55)), 2);
+    if (lineas && altoZona > fs * (2.5 + lineas.length)) {
+      svg += lineas.map((l, i) => `<text x="${cx}" y="${(cy + fs * (1.5 + i * 1.15)).toFixed(2)}" text-anchor="middle"
+        font-size="${fs}" font-family="${'Atkinson Hyperlegible, system-ui, sans-serif'}" font-weight="700"
+        fill="#26313b" style="pointer-events:none;">${esc(l)}</text>`).join('');
+    } else svgSelectorZona.sinNombre.push(z);
   }
   return svg + '</svg>';
+}
+
+// Parte un texto en como mucho `maxLineas` líneas de `maxCars` caracteres, por palabras.
+// Devuelve null si no cabe (alguna palabra sola ya excede, o sobran líneas).
+function partirEnLineas(texto, maxCars, maxLineas) {
+  if (maxCars < 3) return null;
+  const lineas = []; let actual = '';
+  for (const palabra of texto.split(/\s+/)) {
+    if (palabra.length > maxCars) return null;
+    if (!actual) actual = palabra;
+    else if ((actual + ' ' + palabra).length <= maxCars) actual += ' ' + palabra;
+    else { lineas.push(actual); actual = palabra; }
+  }
+  if (actual) lineas.push(actual);
+  return lineas.length <= maxLineas ? lineas : null;
 }
 
 async function pintarIncidencias() {
@@ -3537,6 +3600,10 @@ async function pintarIncidencias() {
   const botonesTipo = Object.entries(TIPOS_INCIDENCIA).map(([clave, t]) =>
     `<button data-tipo-inc="${clave}"><span class="ic">${t.icono}</span>${t.etiqueta}</button>`).join('');
   const chipsCurso = grupos.map(g => `<button data-curso="${esc(g)}">${esc(g)}</button>`).join('');
+  // Leyenda pulsable bajo el plano solo para las zonas cuyo nombre no cabe dentro
+  const svgPlano = svgSelectorZona();
+  const chipsZona = svgSelectorZona.sinNombre.map(z =>
+    `<button data-zona-chip="${z.id}"><span class="punto-zona" style="background:${z.color}"></span>${esc(z.nombre)}</button>`).join('');
   const botonesGrav = Object.entries(GRAVEDADES).map(([n, etq]) =>
     `<button data-gravedad="${n}" class="grav-${n}">${etq}</button>`).join('');
 
@@ -3544,8 +3611,8 @@ async function pintarIncidencias() {
     <div class="form-incidencia">
       <div>
         <div class="paso-titulo"><span class="paso">1</span> ¿Dónde? Toca la zona</div>
-        <div id="svg-selector-zona">${svgSelectorZona()}</div>
-        <div class="chips-curso" style="margin-top:8px;"><button id="btn-sin-zona">📍 Otro lugar del patio</button></div>
+        <div id="svg-selector-zona">${svgPlano}</div>
+        <div class="chips-curso chips-zona" style="margin-top:8px;">${chipsZona}<button id="btn-sin-zona">📍 Otro lugar del patio</button></div>
       </div>
       <div>
         <div class="paso-titulo"><span class="paso">2</span> ¿Qué ha pasado?</div>
@@ -3580,9 +3647,12 @@ async function pintarIncidencias() {
       p.setAttribute('stroke', activa ? '#26313b' : zonas.find(x => x.id === p.dataset.zonaSel).color);
     });
     $('btn-sin-zona').classList.toggle('elegido', id === 'fuera');
+    cont.querySelectorAll('[data-zona-chip]').forEach(c => c.classList.toggle('elegido', c.dataset.zonaChip === id));
   };
   cont.querySelectorAll('[data-zona-sel]').forEach(p =>
     p.addEventListener('click', () => marcarZona(p.dataset.zonaSel)));
+  cont.querySelectorAll('[data-zona-chip]').forEach(c =>
+    c.addEventListener('click', () => marcarZona(c.dataset.zonaChip)));
   $('btn-sin-zona').addEventListener('click', () => marcarZona('fuera'));
 
   const seleccionSimple = (selector, campo) => {
@@ -5135,9 +5205,12 @@ function pintarCabeceraCentro() {
     else if (Nube.conectada()) { el.innerHTML = '🏫 Cuenta sin centro asignado'; el.title = ''; }
     else { el.innerHTML = '🏫 Modo local · datos solo en este dispositivo'; el.title = 'Sin cuenta: entra desde 👤 para sincronizar entre dispositivos'; }
   }
-  const btn = $('btn-cambiar-perfil');
-  if (btn) btn.textContent = Nube.esCentro() && Nube.centro ? '👤 ' + Nube.centro.nombre
+  const textoBtn = Nube.esCentro() && Nube.centro ? '👤 ' + Nube.centro.nombre
     : Nube.esAdmin() ? '👤 Regional' : '👤 Entrar';
+  const btn = $('btn-cambiar-perfil');
+  if (btn) btn.textContent = textoBtn;
+  const btnMovil = $('btn-cuenta-movil'); // el mismo botón, en la barra superior del móvil
+  if (btnMovil) { btnMovil.textContent = textoBtn; btnMovil.classList.toggle('con-cuenta', Nube.conectada()); }
 }
 
 /* ---- Cambiar el nombre del centro (rol centro) ---- */
@@ -5278,6 +5351,7 @@ $('velo-tutorial').addEventListener('pointerup', e => {
 $('velo-tutorial').addEventListener('click', e => { if (e.target === $('velo-tutorial')) cerrarTutorial(); });
 $('perfil-eleccion-centro').addEventListener('click', () => aplicarPerfil('centro'));
 $('btn-cambiar-perfil').addEventListener('click', abrirModalInicio);
+$('btn-cuenta-movil').addEventListener('click', abrirModalInicio);
 
 /* ---- Modal: nombre del centro ---- */
 $('nombre-centro-cancelar').addEventListener('click', () => $('velo-nombre-centro').classList.remove('visible'));
@@ -5761,7 +5835,7 @@ function abrirDarAcceso(s) {
 // Contador junto al botón ✉️ Solicitudes del menú
 function actualizarBadgeSolicitudes(n) {
   const b = $('btn-nav-solicitudes');
-  if (b) b.textContent = n ? `✉️ Solicitudes (${n})` : '✉️ Solicitudes';
+  if (b) b.querySelector('.etq').textContent = n ? `Solicitudes (${n})` : 'Solicitudes';
 }
 
 // Recuenta las dos clases de solicitud (cuenta nueva + contraseña olvidada).
