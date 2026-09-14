@@ -69,6 +69,9 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+/* Foco visible al navegar con teclado (no al hacer clic con el ratón) */
+:focus-visible { outline: 2px solid var(--z-cognitiva); outline-offset: 2px; }
+nav.principal button:focus-visible { outline-color: var(--tiza); outline-offset: -3px; }
 
 html, body { height: 100%; }
 
@@ -768,7 +771,7 @@ body.modo-hoy .panel-hoy { display: block; }
 @media (max-width: 700px) { .rejilla-graficos { grid-template-columns: 1fr; } }
 
 /* Barras horizontales: una sola tinta; la identidad de zona va en el punto */
-.fila-barra { display: grid; grid-template-columns: 150px 1fr 38px; gap: 8px; align-items: center; margin-top: 8px; font-size: 12.5px; }
+.fila-barra { display: grid; grid-template-columns: minmax(120px, 46%) 1fr 38px; gap: 8px; align-items: center; margin-top: 8px; font-size: 12.5px; }
 .fila-barra .etiq { display: flex; align-items: center; gap: 6px; color: var(--tinta); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .fila-barra .punto { width: 10px; height: 10px; border-radius: 3px; flex: none; }
 .fila-barra .pista { height: 14px; display: flex; align-items: center; }
@@ -913,6 +916,7 @@ body.modo-hoy .panel-hoy { display: block; }
 }
 
 @media print {
+  body.cartel-abierto { display: block; height: auto; overflow: visible; background: #fff; }
   body.cartel-abierto > :not(#hoja-impresion) { display: none !important; }
   body.cartel-abierto #hoja-impresion { position: static; padding: 0; background: none; overflow: visible; display: block; }
   .controles-cartel { display: none !important; }
@@ -946,6 +950,9 @@ body.modo-hoy .panel-hoy { display: block; }
 #hoja-informe .leyenda-informe .punto { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; }
 #hoja-informe .pie-informe { margin-top: 14px; font-size: 9.5px; color: #5c6670; border-top: 1px solid #d8d5cc; padding-top: 6px; }
 @media print {
+  /* Mismo arreglo que la encuesta en papel: el body es la rejilla de la app y,
+     sin volver a bloque, la hoja se imprimía estrujada en la columna del menú. */
+  body.informe-abierto { display: block; height: auto; overflow: visible; background: #fff; }
   body.informe-abierto > :not(#hoja-informe) { display: none !important; }
   body.informe-abierto #hoja-informe { display: block; }
 }
@@ -3387,14 +3394,14 @@ async function pintarRotacion() {
 
   let html = '<h3 style="font-family:var(--fuente-titulo); font-size:15px; margin-bottom:6px;">Grupos del centro</h3><div class="chips-grupos">';
   rotacionActual.grupos.forEach((g, i) => {
-    html += `<span class="chip-grupo">${esc(g)}<button data-quitar-grupo="${i}" title="Quitar grupo">✕</button></span>`;
+    html += `<span class="chip-grupo">${esc(g)}<button data-quitar-grupo="${i}" title="Quitar grupo" aria-label="Quitar grupo ${esc(g)}">✕</button></span>`;
   });
   html += '<input id="nuevo-grupo" placeholder="ej. 5º-6º EP"><button class="boton pequeno" id="btn-anadir-grupo">＋ Añadir</button></div>';
 
   html += '<h3 style="font-family:var(--fuente-titulo); font-size:15px; margin:12px 0 6px;">Profesorado voluntario (responsables)</h3>' +
     '<p style="font-size:12.5px; color:var(--tinta-suave); margin-bottom:6px;">Cada actividad puede tener un responsable que la supervisa. Solo nombre de pila o iniciales: aparece en la vista de hoy y en el cartel.</p><div class="chips-grupos">';
   rotacionActual.responsables.forEach((r, i) => {
-    html += `<span class="chip-grupo">🧑‍🏫 ${esc(r)}<button data-quitar-resp="${i}" title="Quitar responsable">✕</button></span>`;
+    html += `<span class="chip-grupo">🧑‍🏫 ${esc(r)}<button data-quitar-resp="${i}" title="Quitar responsable" aria-label="Quitar responsable ${esc(r)}">✕</button></span>`;
   });
   html += '<input id="nuevo-responsable" placeholder="ej. Marta"><button class="boton pequeno" id="btn-anadir-responsable">＋ Añadir</button></div>';
 
@@ -3706,9 +3713,9 @@ async function pintarListaIncidencias() {
     .slice().sort((a, b) => (a.hora || '').localeCompare(b.hora || ''));
 
   let html = `<div class="paso-titulo" style="font-family:var(--fuente-titulo); display:flex; align-items:center; gap:8px;">
-    <button class="boton secundario pequeno" id="inc-dia-antes" title="Día anterior">◀</button>
+    <button class="boton secundario pequeno" id="inc-dia-antes" title="Día anterior" aria-label="Día anterior">◀</button>
     <span style="flex:1; text-align:center;">${esHoy ? 'Registradas hoy' : fechaBonita(fechaListaInc)}: ${lista.length}</span>
-    <button class="boton secundario pequeno" id="inc-dia-despues" ${esHoy ? 'disabled' : ''} title="Día siguiente">▶</button>
+    <button class="boton secundario pequeno" id="inc-dia-despues" ${esHoy ? 'disabled' : ''} title="Día siguiente" aria-label="Día siguiente">▶</button>
   </div>`;
   if (!lista.length) html += '<p class="ayuda" style="font-size:12.5px; color:var(--tinta-suave); text-align:center;">Sin incidencias ese día.</p>';
   for (const inc of [...lista].reverse()) {
@@ -3716,7 +3723,7 @@ async function pintarListaIncidencias() {
     html += `<div class="inc-item" style="border-left-color:${COLOR_GRAVEDAD[inc.gravedad]}">
       <span class="hora">${inc.hora}</span>
       <div class="detalle"><strong>${t.icono} ${t.etiqueta}</strong> · ${esc(inc.zonaNombre)} · ${esc(inc.curso)} · ${GRAVEDADES[inc.gravedad]}${inc.franja && FRANJAS[inc.franja] ? ' · ' + FRANJAS[inc.franja] : ''}${inc.nota ? '<br>' + esc(inc.nota) : ''}</div>
-      <button data-borrar-inc="${inc.id}" title="Borrar registro">✕</button>
+      <button data-borrar-inc="${inc.id}" title="Borrar registro" aria-label="Borrar registro">✕</button>
     </div>`;
   }
   cont.innerHTML = html;
@@ -3802,7 +3809,7 @@ async function pintarListaOcupaciones() {
     html += `<div class="inc-item" style="border-left-color:#3e7cb1">
       <span class="hora">${reg.hora}</span>
       <div class="detalle">${partes}</div>
-      <button data-borrar-ocup="${reg.id}" title="Borrar recuento">✕</button>
+      <button data-borrar-ocup="${reg.id}" title="Borrar recuento" aria-label="Borrar recuento">✕</button>
     </div>`;
   }
   cont.innerHTML = html;
@@ -5267,11 +5274,11 @@ function abrirModalInicio() {
 
 $('btn-login-entrar').addEventListener('click', loginDesdeModal);
 $('login-clave').addEventListener('keydown', e => { if (e.key === 'Enter') loginDesdeModal(); });
-$('btn-ver-demo').addEventListener('click', () => mostrarVistaInicio('demo'));
+$('btn-ver-demo').addEventListener('click', () => aplicarPerfil('centro')); // directo, sin paso intermedio
 $('btn-ver-solicitud').addEventListener('click', () => { $('sol-error').textContent = ''; mostrarVistaInicio('solicitud'); });
 $('btn-sol-volver').addEventListener('click', () => mostrarVistaInicio('login'));
 $('btn-enviada-volver').addEventListener('click', () => mostrarVistaInicio('login'));
-$('btn-enviada-demo').addEventListener('click', () => mostrarVistaInicio('demo'));
+$('btn-enviada-demo').addEventListener('click', () => aplicarPerfil('centro'));
 $('btn-volver-login').addEventListener('click', () => mostrarVistaInicio('login'));
 $('btn-sol-enviar').addEventListener('click', enviarSolicitudCuenta);
 $('btn-ver-recuperar').addEventListener('click', () => {
