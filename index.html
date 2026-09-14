@@ -125,6 +125,22 @@ nav.principal {
   display: flex; flex-direction: column; gap: 4px;
   overflow-y: auto;
 }
+/* Bloque del centro arriba del menú: el nombre del centro, bien visible */
+nav.principal .bloque-centro {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  background: rgba(255,255,255,.06); border: 1px dashed rgba(255,255,255,.22); border-radius: 10px;
+  padding: 10px 11px; margin: 2px 0 8px; cursor: pointer; color: var(--tiza); font-family: var(--fuente-cuerpo);
+}
+nav.principal .bloque-centro:hover:not(:disabled) { background: rgba(255,255,255,.12); }
+nav.principal .bloque-centro:disabled { cursor: default; }
+nav.principal .bloque-centro .ico-c { font-size: 22px; flex: none; }
+nav.principal .bloque-centro .textos-c { display: flex; flex-direction: column; min-width: 0; }
+nav.principal .bloque-centro .nombre-c {
+  font-family: var(--fuente-titulo); font-weight: 800; font-size: 15px; line-height: 1.15;
+  overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+nav.principal .bloque-centro .estado-c { font-size: 10.5px; color: rgba(255,255,255,.55); margin-top: 2px; }
+.logo-caja .nombre-centro-movil { display: none; }
 nav.principal .grupo {
   font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
   color: rgba(255,255,255,.45); padding: 12px 10px 5px;
@@ -529,7 +545,13 @@ body.modo-hoy .panel-hoy { display: block; }
     scrollbar-width: none;
   }
   nav.principal::-webkit-scrollbar { display: none; }
-  nav.principal .grupo, nav.principal .pie { display: none; }
+  nav.principal .grupo, nav.principal .pie, nav.principal .bloque-centro { display: none; }
+  /* En móvil el nombre del centro sustituye a la marca en la barra superior */
+  body.con-nombre-centro .logo-caja .nombre { display: none; }
+  body.con-nombre-centro .logo-caja .nombre-centro-movil {
+    display: block; font-family: var(--fuente-titulo); font-weight: 800; font-size: 15px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  }
   nav.principal button {
     flex: 1 0 0; min-width: 58px; width: auto;
     flex-direction: column; justify-content: center; gap: 3px;
@@ -988,6 +1010,7 @@ body.modo-hoy .panel-hoy { display: block; }
   </svg>
   <div>
     <div class="nombre"><span>Patios</span> <span>Dinámicos</span></div>
+    <div class="nombre-centro-movil" id="nombre-centro-movil"></div>
     <div class="region">La Rioja</div>
   </div>
   <button id="btn-cuenta-movil" class="cuenta-movil" title="Entrar con tu cuenta o cambiar de perfil">👤 Entrar</button>
@@ -1001,7 +1024,10 @@ body.modo-hoy .panel-hoy { display: block; }
 
 <!-- ===================== Navegación ===================== -->
 <nav class="principal">
-  <div class="grupo">Mi centro</div>
+  <button id="bloque-centro" class="bloque-centro" title="Nombre del centro">
+    <span class="ico-c">🏫</span>
+    <span class="textos-c"><span class="nombre-c" id="nombre-centro-nav">Mi centro</span><span class="estado-c" id="estado-centro-nav">Modo local</span></span>
+  </button>
   <button class="activo" data-vista="vista-editor" data-titulo="Configurador de patio"><span class="ico">🗺️</span><span class="etq">Patio<span class="largo"> y zonas</span></span></button>
   <button data-vista="vista-rotacion" data-titulo="Rotación de zonas"><span class="ico">🔄</span><span class="etq">Rotación</span></button>
   <button data-vista="vista-incidencias" data-titulo="Registro de incidencia"><span class="ico">📝</span><span class="etq">Incidencias</span></button>
@@ -1424,7 +1450,7 @@ body.modo-hoy .panel-hoy { display: block; }
 <div class="velo" id="velo-nombre-centro">
   <div class="modal">
     <h2>Nombre del centro</h2>
-    <p style="font-size:12.5px; color:var(--tinta-suave);">Aparece en la cabecera de la app y en el panel de orientación regional.</p>
+    <p style="font-size:12.5px; color:var(--tinta-suave);" id="nombre-centro-ayuda">Aparece en el menú de la app, en el cartel y en el panel de orientación regional.</p>
     <label>Nombre</label>
     <input type="text" id="nombre-centro-input" maxlength="80" placeholder="ej. CEIP San Prudencio">
     <div class="login-error" id="nombre-centro-error"></div>
@@ -2835,9 +2861,21 @@ function cargarDesdeGeoJSON(fc) {
       }
     }
   }
-  if (perimetroLayer) mapa.fitBounds(perimetroLayer.getBounds().pad(0.3));
+  if (perimetroLayer) encuadrarPatio(0.3);
   refrescarTodo();
 }
+
+// Encuadra el patio. Si el mapa aún no tiene tamaño (pestaña en segundo plano,
+// PWA arrancando oculta), fitBounds daría zoom 0: se repite en cuanto tenga tamaño.
+function encuadrarPatio(margen) {
+  if (!perimetroLayer) return;
+  const b = perimetroLayer.getBounds().pad(margen);
+  if (mapa.getSize().x > 0 && mapa.getSize().y > 0) { mapa.fitBounds(b); return; }
+  mapa.once('resize', () => mapa.fitBounds(b));
+}
+// Red de seguridad: si tras un cambio de tamaño el mapa aparece a zoom mundial
+// (pasa al arrancar en una pestaña oculta), se vuelve a encuadrar el patio.
+mapa.on('resize', () => { if (perimetroLayer && mapa.getZoom() < 10) encuadrarPatio(0.3); });
 
 /* ---------- Exportar / importar ---------- */
 $('btn-exportar').addEventListener('click', () => {
@@ -3309,7 +3347,7 @@ async function generarCartel() {
     <div class="cabecera-cartel">
       <h2>¡El patio de hoy!</h2>
       <div class="fecha-cartel">${hoy}</div>
-      <div class="centro-cartel">CEIP Valdemontes · Patios Dinámicos La Rioja</div>
+      <div class="centro-cartel">${esc(nombreCentroActual() || 'Mi centro')} · Patios Dinámicos La Rioja</div>
       <div class="lineas-patio">${lineas}</div>
     </div>
     <div class="zona-svg">${generarSVGCartel($('cartel-fondo').value)}</div>
@@ -5253,16 +5291,36 @@ function aplicarPerfilNube() {
 
 // Cabecera: nombre real del centro conectado (o estado local). También
 // actualiza el botón de cuenta del pie del menú.
+const CLAVE_NOMBRE_LOCAL = 'patios-dinamicos:nombre-centro';
+// Nombre del centro: el de la cuenta si la hay; si no, el que el usuario haya puesto en este dispositivo
+function nombreCentroActual() {
+  if (Nube.esCentro() && Nube.centro && Nube.centro.nombre) return Nube.centro.nombre;
+  return localStorage.getItem(CLAVE_NOMBRE_LOCAL) || '';
+}
+
 function pintarCabeceraCentro() {
+  const nombre = nombreCentroActual();
+  const admin = Nube.esAdmin();
+  // Bloque del centro arriba del menú (escritorio) y barra superior (móvil)
+  const nav = $('nombre-centro-nav'), est = $('estado-centro-nav'), mov = $('nombre-centro-movil');
+  if (nav) {
+    nav.textContent = admin ? 'Orientación regional' : (nombre || 'Mi centro');
+    est.textContent = Nube.esCentro() ? '☁️ Conectado a la nube' : admin ? 'Cuenta de administración'
+      : Nube.conectada() ? 'Cuenta sin centro asignado' : (nombre ? 'Modo local · sin cuenta' : 'Toca para poner el nombre');
+    $('bloque-centro').title = admin ? 'Cuenta de orientación regional' : 'Cambiar el nombre del centro';
+    $('bloque-centro').disabled = admin;
+  }
+  if (mov) mov.textContent = admin ? 'Orientación regional' : nombre;
+  document.body.classList.toggle('con-nombre-centro', !!(admin || nombre));
   const el = $('centro-activo');
   if (el) {
-    if (Nube.esCentro() && Nube.centro) { el.innerHTML = '🏫 ' + esc(Nube.centro.nombre); el.title = 'Centro conectado a la nube'; }
-    else if (Nube.esAdmin()) { el.innerHTML = '🔬 Orientación regional'; el.title = 'Cuenta de orientación regional'; }
+    if (Nube.esCentro() && Nube.centro) { el.innerHTML = '☁️ Sincronizado con la nube'; el.title = 'Centro conectado a la nube'; }
+    else if (admin) { el.innerHTML = '🔬 Orientación regional'; el.title = 'Cuenta de orientación regional'; }
     else if (Nube.conectada()) { el.innerHTML = '🏫 Cuenta sin centro asignado'; el.title = ''; }
-    else { el.innerHTML = '🏫 Modo local · datos solo en este dispositivo'; el.title = 'Sin cuenta: entra desde 👤 para sincronizar entre dispositivos'; }
+    else { el.innerHTML = '📴 Modo local · datos solo en este dispositivo'; el.title = 'Sin cuenta: entra desde 👤 para sincronizar entre dispositivos'; }
   }
-  const textoBtn = Nube.esCentro() && Nube.centro ? '👤 ' + Nube.centro.nombre
-    : Nube.esAdmin() ? '👤 Regional' : '👤 Entrar';
+  const textoBtn = Nube.esCentro() && Nube.centro ? '👤 Mi cuenta'
+    : admin ? '👤 Regional' : '👤 Entrar';
   const btn = $('btn-cambiar-perfil');
   if (btn) btn.textContent = textoBtn;
   const btnMovil = $('btn-cuenta-movil'); // el mismo botón, en la barra superior del móvil
@@ -5271,7 +5329,10 @@ function pintarCabeceraCentro() {
 
 /* ---- Cambiar el nombre del centro (rol centro) ---- */
 function abrirModalNombreCentro() {
-  $('nombre-centro-input').value = (Nube.centro && Nube.centro.nombre) || '';
+  $('nombre-centro-input').value = nombreCentroActual();
+  $('nombre-centro-ayuda').textContent = Nube.esCentro()
+    ? 'Aparece en el menú de la app, en el cartel y en el panel de orientación regional.'
+    : 'Sin cuenta, el nombre se guarda solo en este dispositivo (menú y cartel). Con cuenta, lo fija orientación al darte de alta.';
   $('nombre-centro-error').textContent = '';
   $('velo-nombre-centro').classList.add('visible');
   setTimeout(() => $('nombre-centro-input').focus(), 40);
@@ -5407,6 +5468,7 @@ $('velo-tutorial').addEventListener('pointerup', e => {
 $('velo-tutorial').addEventListener('click', e => { if (e.target === $('velo-tutorial')) cerrarTutorial(); });
 $('perfil-eleccion-centro').addEventListener('click', () => aplicarPerfil('centro'));
 $('btn-cambiar-perfil').addEventListener('click', abrirModalInicio);
+$('bloque-centro').addEventListener('click', () => { if (!Nube.esAdmin()) abrirModalNombreCentro(); });
 $('btn-cuenta-movil').addEventListener('click', abrirModalInicio);
 
 /* ---- Modal: nombre del centro ---- */
@@ -5417,7 +5479,8 @@ $('nombre-centro-guardar').addEventListener('click', async () => {
   const b = $('nombre-centro-guardar');
   b.disabled = true; b.textContent = 'Guardando…';
   try {
-    await Nube.renombrarCentro(nombre);
+    if (Nube.esCentro()) await Nube.renombrarCentro(nombre);
+    else localStorage.setItem(CLAVE_NOMBRE_LOCAL, nombre); // sin cuenta: solo en este dispositivo
     $('velo-nombre-centro').classList.remove('visible');
     pintarCabeceraCentro(); pintarNube();
     avisar('Nombre del centro actualizado.');
