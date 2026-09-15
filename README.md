@@ -221,3 +221,12 @@ registrada (patio guardado, incidencia, etc.). La columna se crea al ejecutar
     dispositivo, y datos reales para el rol admin en "Centros y patios" y en el
     panel regional (sustituyen a la demo cuando existen). Queda para después:
     vistas agregadas k-anónimas para investigación formal y realtime.
+12. ✅ **Repaso de lanzamiento (sep 2026):** etapa del centro (EI/EP/ESO/mixta,
+    en el modal "Mi centro") que adapta grupos por defecto, banco de
+    actividades y redacción de la encuesta del alumnado; banco de actividades
+    editable en Rotación (se guarda en `rotacion.banco`, autocompleta las
+    celdas); motor `analizarCentro()` compartido por el panel y por el nuevo
+    **informe del patio imprimible** (lecturas automáticas, evolución del
+    bienestar por trimestre, tablas de zonas/incidencias/encuesta); estados
+    vacíos con salida, checklist "Primeros pasos" en el editor, modal de
+    privacidad y versión del pie leída del service worker.
