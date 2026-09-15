@@ -502,6 +502,22 @@ body.modo-hoy .panel-hoy { display: block; }
   padding: 6px 10px; border: 1.5px solid var(--hormigon-2); border-radius: 999px;
   font-family: var(--fuente-cuerpo); font-size: 12.5px; width: 130px;
 }
+/* Banco de actividades: plegado por defecto para no alargar la vista */
+.banco-actividades { background: var(--hormigon); border: 1px solid var(--hormigon-2); border-radius: var(--radio); padding: 10px 14px; margin-bottom: 14px; max-width: 1050px; }
+.banco-actividades summary { cursor: pointer; font-family: var(--fuente-titulo); font-size: 14.5px; font-weight: 700; }
+.banco-actividades summary .datos { font-family: var(--fuente-cuerpo); font-size: 12px; font-weight: 400; color: var(--tinta-suave); }
+.banco-tipo { display: grid; grid-template-columns: 150px 1fr; gap: 8px; align-items: start; margin-top: 10px; }
+.banco-tipo .chips-grupos { margin: 0; }
+.banco-tipo .chip-grupo { background: var(--tiza); color: var(--tinta); border: 1px solid var(--hormigon-2); font-weight: 400; }
+.banco-tipo .chip-grupo button { color: var(--tinta-suave); }
+.banco-tipo .chip-grupo button:hover { color: var(--aviso); }
+.banco-tipo .chips-grupos input { width: 170px; background: var(--tiza); }
+.banco-etq { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 12.5px; padding-top: 6px; }
+.banco-etq .punto { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.banco-etq small { font-weight: 400; color: var(--tinta-suave); }
+.banco-tipo.sin-zonas { opacity: .6; }
+.banco-actividades .datos { font-size: 12px; color: var(--tinta-suave); }
+@media (max-width: 700px) { .banco-tipo { grid-template-columns: 1fr; gap: 4px; } }
 .envoltura-tabla { overflow-x: auto; max-width: 1050px; }
 .tabla-rotacion { border-collapse: collapse; background: var(--tiza); font-size: 12.5px; width: 100%; }
 .tabla-rotacion th, .tabla-rotacion td { border: 1px solid var(--hormigon-2); padding: 7px 8px; text-align: left; vertical-align: top; }
@@ -1464,10 +1480,18 @@ body.modo-hoy .panel-hoy { display: block; }
 <!-- ===================== Modal: nombre del centro ===================== -->
 <div class="velo" id="velo-nombre-centro">
   <div class="modal">
-    <h2>Nombre del centro</h2>
+    <h2>Mi centro</h2>
     <p style="font-size:12.5px; color:var(--tinta-suave);" id="nombre-centro-ayuda">Aparece en el menú de la app, en el cartel y en el panel de orientación regional.</p>
-    <label>Nombre</label>
+    <label for="nombre-centro-input">Nombre</label>
     <input type="text" id="nombre-centro-input" maxlength="80" placeholder="ej. CEIP San Prudencio">
+    <label for="etapa-centro-select">Etapa</label>
+    <select id="etapa-centro-select">
+      <option value="EI">Infantil</option>
+      <option value="EP">Primaria</option>
+      <option value="ESO">Secundaria (ESO)</option>
+      <option value="mixta">Primaria y Secundaria</option>
+    </select>
+    <p style="font-size:12px; color:var(--tinta-suave); margin-top:5px;">La etapa adapta los grupos por defecto, el banco de actividades y la redacción de la encuesta del alumnado.</p>
     <div class="login-error" id="nombre-centro-error"></div>
     <div class="pie-modal">
       <button class="boton secundario" id="nombre-centro-cancelar">Cancelar</button>
@@ -1602,15 +1626,64 @@ const ICONOS_DISPONIBLES = [
   '🎵', '✂️', '🖍️', '⭐', '🌈', '🤝', '🐞', '🏰'
 ];
 
-// Actividades de ejemplo por tipo, para la "vista de hoy" (mock de rotaciones)
-const ACTIVIDADES_MOCK = {
-  deportiva: ['Datchball', 'Fútbol 3x3', 'Baloncesto por estaciones', 'Circuito de saltos'],
-  lectura:   ['Biblioteca de patio', 'Cuentacuentos entre iguales', 'Rincón de calma'],
-  cognitiva: ['Ajedrez gigante', 'Torneo de damas', 'Juegos de lógica en el suelo'],
-  creativa:  ['Tizas y murales', 'Taller de papiroflexia', 'Teatro improvisado'],
-  otra:      ['Juego libre supervisado', 'Rayuelas y combas']
+/* ---- Etapa del centro: adapta grupos por defecto, banco de actividades y
+   redacción de la encuesta. La fija la cuenta (centros.etapa) o el propio
+   centro en el modal de nombre; en local se guarda en este dispositivo. ---- */
+const ETAPAS = { EI: 'Infantil', EP: 'Primaria', ESO: 'Secundaria', mixta: 'Primaria y Secundaria' };
+const CLAVE_ETAPA_LOCAL = 'patios-dinamicos:etapa';
+function etapaCentro() {
+  const local = localStorage.getItem(CLAVE_ETAPA_LOCAL);
+  if (local && ETAPAS[local]) return local;
+  if (Nube.esCentro() && Nube.centro && ETAPAS[Nube.centro.etapa]) return Nube.centro.etapa;
+  return 'EP';
+}
+
+const GRUPOS_POR_ETAPA = {
+  EI:    ['3 años', '4 años', '5 años'],
+  EP:    ['1º-2º EP', '3º-4º EP', '5º-6º EP'],
+  ESO:   ['1º ESO', '2º ESO', '3º ESO', '4º ESO'],
+  mixta: ['1º-2º EP', '3º-4º EP', '5º-6º EP', '1º-2º ESO', '3º-4º ESO']
 };
-const GRUPOS_MOCK = ['1º-2º EP', '3º-4º EP', '5º-6º EP'];
+function gruposPorDefecto(etapa = etapaCentro()) { return [...(GRUPOS_POR_ETAPA[etapa] || GRUPOS_POR_ETAPA.EP)]; }
+
+// Banco de actividades de partida por tipo de zona y etapa. El centro lo edita
+// en Rotación (se guarda con la rotación del patio: rotacion.banco).
+const ACTIVIDADES_POR_ETAPA = {
+  EI: {
+    deportiva: ['Circuito de motricidad', 'Carreras de relevos', 'Juegos de pelota blanda', 'Paracaídas de colores'],
+    lectura:   ['Rincón de cuentos', 'Cojines de calma', 'Títeres'],
+    cognitiva: ['Puzles gigantes', 'Construcciones', 'Juegos de encajar y clasificar'],
+    creativa:  ['Tizas en el suelo', 'Pintura con agua', 'Música y baile'],
+    otra:      ['Juego simbólico', 'Arenero y cubos']
+  },
+  EP: {
+    deportiva: ['Datchball', 'Fútbol 3x3', 'Baloncesto por estaciones', 'Circuito de saltos'],
+    lectura:   ['Biblioteca de patio', 'Cuentacuentos entre iguales', 'Rincón de calma'],
+    cognitiva: ['Ajedrez gigante', 'Torneo de damas', 'Juegos de lógica en el suelo'],
+    creativa:  ['Tizas y murales', 'Taller de papiroflexia', 'Teatro improvisado'],
+    otra:      ['Juego libre supervisado', 'Rayuelas y combas']
+  },
+  ESO: {
+    deportiva: ['Liga de fútbol sala', 'Baloncesto 3x3', 'Voleibol', 'Ping-pong', 'Bádminton'],
+    lectura:   ['Club de lectura', 'Zona tranquila con música', 'Podcast del instituto'],
+    cognitiva: ['Torneo de ajedrez', 'Juegos de mesa modernos', 'Escape room por retos', 'Rubik y rompecabezas'],
+    creativa:  ['Mural colaborativo', 'Radio del recreo', 'Baile y coreografías', 'Fotografía con móvil'],
+    otra:      ['Huerto escolar', 'Mediación entre iguales', 'Espacio de charla']
+  }
+};
+ACTIVIDADES_POR_ETAPA.mixta = Object.fromEntries(Object.keys(TIPOS_ZONA).map(t =>
+  [t, [...new Set([...ACTIVIDADES_POR_ETAPA.EP[t], ...ACTIVIDADES_POR_ETAPA.ESO[t]])]]));
+function actividadesBase(etapa = etapaCentro()) {
+  const base = ACTIVIDADES_POR_ETAPA[etapa] || ACTIVIDADES_POR_ETAPA.EP;
+  return Object.fromEntries(Object.keys(TIPOS_ZONA).map(t => [t, [...(base[t] || base.otra)]]));
+}
+// Banco vigente: el editado por el centro (guardado en la rotación del patio) o el de partida
+function bancoActividades() {
+  const b = (typeof rotacionActual !== 'undefined' && rotacionActual && rotacionActual.banco) || null;
+  const base = actividadesBase();
+  if (!b) return base;
+  return Object.fromEntries(Object.keys(TIPOS_ZONA).map(t => [t, Array.isArray(b[t]) && b[t].length ? b[t] : base[t]]));
+}
 
 /* ============================================================
    CAPA DE DATOS  —  ÚNICO punto de contacto con la persistencia.
@@ -1869,10 +1942,10 @@ const DataLayer = {
       return { actividad: celda.actividad || 'Juego libre', grupo: celda.grupo || '—', responsable: celda.responsable || '', esMock: false };
     }
     const diaAno = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 864e5);
-    const lista = ACTIVIDADES_MOCK[zona.tipo] || ACTIVIDADES_MOCK.otra;
+    const lista = bancoActividades()[zona.tipo] || bancoActividades().otra;
     return {
       actividad: lista[(diaAno + indiceZona) % lista.length],
-      grupo: GRUPOS_MOCK[(diaAno + indiceZona) % GRUPOS_MOCK.length],
+      grupo: gruposPorDefecto()[(diaAno + indiceZona) % gruposPorDefecto().length],
       responsable: '', // los nombres del profesorado nunca se inventan en el mock
       esMock: true
     };
@@ -3476,13 +3549,14 @@ function abrirCeldaRot(td) {
   // Si la celda guarda un grupo o responsable ya eliminado, se conserva como opción para no perderlo en silencio
   const opciones = [...new Set([...(celda.grupo ? [celda.grupo] : []), ...rotacionActual.grupos])];
   const opcResp = [...new Set([...(celda.responsable ? [celda.responsable] : []), ...rotacionActual.responsables])];
+  const z = zonas.find(x => x.id === zonaId) || { tipo: 'otra' };
   td.classList.add('editando');
   td.innerHTML = `
     <select data-campo="grupo" aria-label="Grupo">
       <option value="">— grupo —</option>
       ${opciones.map(g => `<option ${g === celda.grupo ? 'selected' : ''}>${esc(g)}</option>`).join('')}
     </select>
-    <input data-campo="actividad" placeholder="Actividad" aria-label="Actividad" value="${esc(celda.actividad || '')}">
+    <input data-campo="actividad" placeholder="Actividad" aria-label="Actividad" list="lista-act-${esc(z.tipo)}" value="${esc(celda.actividad || '')}">
     <select data-campo="responsable" aria-label="Responsable (profe voluntario)">
       <option value="">— responsable —</option>
       ${opcResp.map(r => `<option ${r === celda.responsable ? 'selected' : ''}>${esc(r)}</option>`).join('')}
@@ -3509,10 +3583,62 @@ function cerrarCeldaRot(td) {
   td.innerHTML = resumenCeldaRot(rotacionActual.dias[d][zonaId] || {}, z, d);
 }
 
+/* ---- Banco de actividades (sugerencias por tipo de zona, editable) ----
+   Se guarda con la rotación del patio (rotacion.banco), así viaja a la nube
+   con el resto. Alimenta la rotación automática y el autocompletado de las celdas. */
+let bancoAbierto = false;
+function htmlBancoActividades() {
+  const banco = bancoActividades();
+  const editado = !!(rotacionActual && rotacionActual.banco);
+  const tiposEnUso = new Set(zonas.map(z => z.tipo));
+  let html = `<details class="banco-actividades" id="banco-actividades" ${bancoAbierto ? 'open' : ''}>
+    <summary>🎒 Banco de actividades <span class="datos">· sugerencias por tipo de zona: se usan al generar la rotación y al escribir en las celdas${editado ? ' · personalizado' : ''}</span></summary>`;
+  for (const [tipo, t] of Object.entries(TIPOS_ZONA)) {
+    html += `<div class="banco-tipo ${tiposEnUso.has(tipo) ? '' : 'sin-zonas'}">
+      <span class="banco-etq"><span class="punto" style="background:${t.color}"></span>${t.etiqueta}${tiposEnUso.has(tipo) ? '' : ' <small>(sin zonas de este tipo)</small>'}</span>
+      <div class="chips-grupos">${banco[tipo].map((a, i) =>
+        `<span class="chip-grupo">${esc(a)}<button data-quitar-act="${tipo}:${i}" title="Quitar actividad" aria-label="Quitar ${esc(a)}">✕</button></span>`).join('')}
+        <input data-nueva-act="${tipo}" placeholder="ej. ${esc(actividadesBase()[tipo][0])}" aria-label="Nueva actividad de tipo ${t.etiqueta}"><button class="boton pequeno" data-anadir-act="${tipo}">＋</button>
+      </div></div>`;
+    html += `<datalist id="lista-act-${tipo}">${banco[tipo].map(a => `<option value="${esc(a)}">`).join('')}</datalist>`;
+  }
+  html += `<div class="fila-botones" style="margin-top:8px;"><button class="boton secundario pequeno" id="btn-banco-restaurar" ${editado ? '' : 'disabled'}>↺ Restaurar las sugerencias de ${ETAPAS[etapaCentro()]}</button>
+    <span class="datos" style="align-self:center;">La etapa se cambia pulsando el nombre del centro, arriba.</span></div></details>`;
+  return html;
+}
+
+function activarBancoActividades() {
+  const det = $('banco-actividades');
+  if (!det) return;
+  det.addEventListener('toggle', () => { bancoAbierto = det.open; });
+  const asegurarBanco = () => { if (!rotacionActual.banco) rotacionActual.banco = bancoActividades(); return rotacionActual.banco; };
+  det.querySelectorAll('[data-quitar-act]').forEach(b => b.addEventListener('click', () => {
+    const [tipo, i] = b.dataset.quitarAct.split(':');
+    asegurarBanco()[tipo].splice(+i, 1);
+    autoguardarRotacion(); pintarRotacion();
+  }));
+  const anadir = tipo => {
+    const inp = det.querySelector(`[data-nueva-act="${tipo}"]`);
+    const v = inp.value.trim();
+    if (!v) return;
+    const lista = asegurarBanco()[tipo];
+    if (!lista.includes(v)) lista.push(v);
+    autoguardarRotacion(); pintarRotacion();
+    setTimeout(() => { const n = document.querySelector(`[data-nueva-act="${tipo}"]`); if (n) n.focus(); }, 0);
+  };
+  det.querySelectorAll('[data-anadir-act]').forEach(b => b.addEventListener('click', () => anadir(b.dataset.anadirAct)));
+  det.querySelectorAll('[data-nueva-act]').forEach(inp => inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); anadir(inp.dataset.nuevaAct); } }));
+  $('btn-banco-restaurar').addEventListener('click', () => {
+    delete rotacionActual.banco;
+    autoguardarRotacion(); pintarRotacion();
+    avisar('Banco de actividades restaurado a las sugerencias de ' + ETAPAS[etapaCentro()] + '.');
+  });
+}
+
 async function pintarRotacion() {
   const cont = $('contenido-rotacion');
   if (!rotacionActual) {
-    rotacionActual = (await DataLayer.cargarRotacion()) || { grupos: [...GRUPOS_MOCK], responsables: [], dias: [{}, {}, {}, {}, {}] };
+    rotacionActual = (await DataLayer.cargarRotacion()) || { grupos: gruposPorDefecto(), responsables: [], dias: [{}, {}, {}, {}, {}] };
   }
   // Rotaciones guardadas antes de existir los responsables
   if (!rotacionActual.responsables) rotacionActual.responsables = [];
@@ -3534,6 +3660,8 @@ async function pintarRotacion() {
     html += `<span class="chip-grupo">🧑‍🏫 ${esc(r)}<button data-quitar-resp="${i}" title="Quitar responsable" aria-label="Quitar responsable ${esc(r)}">✕</button></span>`;
   });
   html += '<input id="nuevo-responsable" placeholder="ej. Marta"><button class="boton pequeno" id="btn-anadir-responsable">＋ Añadir</button></div>';
+
+  html += htmlBancoActividades();
 
   html += '<div class="fila-botones" style="margin-bottom:12px;">' +
     '<button class="boton secundario" id="btn-generar-rotacion">🔄 Generar rotación automática</button>' +
@@ -3587,6 +3715,7 @@ async function pintarRotacion() {
   cont.querySelectorAll('td.celda-rot').forEach(td => td.addEventListener('click', e => {
     if (!td.classList.contains('editando')) abrirCeldaRot(td);
   }));
+  activarBancoActividades();
 
   // Vaciar la tabla en dos toques (confirm() bloquearía la app), con Deshacer en el aviso
   let confirmarVaciado = null;
@@ -3611,8 +3740,9 @@ async function pintarRotacion() {
     const gs = rotacionActual.grupos;
     if (!gs.length) { avisar('Añade al menos un grupo antes de generar la rotación.'); return; }
     const rs = rotacionActual.responsables;
+    const banco = bancoActividades();
     zonas.forEach((z, i) => {
-      const lista = ACTIVIDADES_MOCK[z.tipo] || ACTIVIDADES_MOCK.otra;
+      const lista = banco[z.tipo] || banco.otra;
       for (let d = 0; d < 5; d++) {
         rotacionActual.dias[d][z.id] = {
           grupo: gs[(i + d) % gs.length],
@@ -3733,7 +3863,7 @@ async function pintarIncidencias() {
   incSel = { zonaId: undefined, zonaNombre: '', tipo: null, curso: null, gravedad: null, franja: franjaPorHora() };
   fechaListaInc = fechaISOLocal(); // al entrar en la vista, la lista empieza en hoy
   const rot = await DataLayer.cargarRotacion();
-  const grupos = (rot && rot.grupos && rot.grupos.length) ? rot.grupos : [...GRUPOS_MOCK];
+  const grupos = (rot && rot.grupos && rot.grupos.length) ? rot.grupos : gruposPorDefecto();
 
   const botonesTipo = Object.entries(TIPOS_INCIDENCIA).map(([clave, t]) =>
     `<button data-tipo-inc="${clave}"><span class="ic">${t.icono}</span>${t.etiqueta}</button>`).join('');
@@ -3958,14 +4088,38 @@ async function pintarListaOcupaciones() {
 /* ============================================================
    ENCUESTA TRIMESTRAL DE BIENESTAR (alumnado / profesorado)
    ============================================================ */
-const ITEMS_ENCUESTA = {
-  alumnado: [
+/* Los 5 ítems del alumnado miden lo mismo en todas las etapas (mismo índice →
+   comparable en el panel y en la nube); solo cambia la redacción. */
+const ITEMS_ALUMNADO_ETAPA = {
+  EI: [
+    '¿Te lo pasas bien en el patio?',
+    '¿Tienes con quién jugar?',
+    '¿Te gustan los juegos de las zonas?',
+    '¿Estás tranquilo/a en el patio?',
+    'Si pasa algo, ¿te ayudan los profes?'
+  ],
+  EP: [
     '¿Te lo pasas bien en el recreo?',
     '¿Tienes con quién jugar?',
     '¿Te gustan las actividades de las zonas?',
     '¿Te sientes tranquilo/a y seguro/a en el patio?',
     'Si hay un problema, ¿te ayudan los profes?'
   ],
+  ESO: [
+    '¿Te lo pasas bien en el recreo?',
+    '¿Tienes con quién estar en el recreo?',
+    '¿Te interesan las actividades de las zonas?',
+    '¿Te sientes tranquilo/a y seguro/a en el patio?',
+    'Si hay un problema, ¿te ayuda el profesorado?'
+  ]
+};
+ITEMS_ALUMNADO_ETAPA.mixta = ITEMS_ALUMNADO_ETAPA.EP;
+function itemsEncuesta(colectivo) {
+  if (colectivo === 'alumnado') return ITEMS_ALUMNADO_ETAPA[etapaCentro()] || ITEMS_ALUMNADO_ETAPA.EP;
+  return ITEMS_ENCUESTA[colectivo];
+}
+const ITEMS_ENCUESTA = {
+  alumnado: ITEMS_ALUMNADO_ETAPA.EP,
   profesorado: [
     'El clima de convivencia durante el recreo es bueno.',
     'Las zonas y la rotación reducen los conflictos.',
@@ -4004,7 +4158,7 @@ async function pintarEncuestas() {
   const cont = $('contenido-encuestas');
   encSel = { respondente: encSel.respondente || 'alumnado', curso: null };
   const rot = await DataLayer.cargarRotacion();
-  const grupos = (rot && rot.grupos && rot.grupos.length) ? rot.grupos : [...GRUPOS_MOCK];
+  const grupos = (rot && rot.grupos && rot.grupos.length) ? rot.grupos : gruposPorDefecto();
   const esAlumnado = encSel.respondente === 'alumnado';
   const tri = trimestreActual();
   const sesiones = (await DataLayer.listarSesionesEncuesta()).filter(s => s.trimestre === tri);
@@ -4113,7 +4267,7 @@ function pintarFormKiosco() {
   const cuerpo = $('kiosco-cuerpo');
   cuerpo.style.display = '';
   const esAlumnado = kiosco.colectivo === 'alumnado';
-  const items = ITEMS_ENCUESTA[kiosco.colectivo];
+  const items = itemsEncuesta(kiosco.colectivo);
 
   let html = `<p class="ayuda" style="font-size:14px;">${esAlumnado
     ? 'Marca la carita que más se parezca a ti. Nadie sabrá qué has respondido.'
@@ -4199,7 +4353,7 @@ async function cerrarKiosco() {
 /* --- Formulario de papel imprimible --- */
 function imprimirFormularioPapel(colectivo, curso) {
   const esAlumnado = colectivo === 'alumnado';
-  const items = ITEMS_ENCUESTA[colectivo];
+  const items = itemsEncuesta(colectivo);
   const escala = `<div class="escala-papel">${ESCALA_LIKERT.map((cara, v) =>
     `<div class="opcion"><div class="cara">${cara}</div><div class="num-op">${v + 1}</div><span class="circulo"></span></div>`).join('')}</div>`;
   const campo = (etiq, valor) => `<div class="dato-papel">
@@ -4240,7 +4394,7 @@ function imprimirFormularioPapel(colectivo, curso) {
 function pintarVolcado(colectivo, curso) {
   const cont = $('contenido-encuestas');
   const esAlumnado = colectivo === 'alumnado';
-  const items = ITEMS_ENCUESTA[colectivo];
+  const items = itemsEncuesta(colectivo);
 
   let html = `<div class="form-encuesta">
     <div class="paso-titulo" style="font-family:var(--fuente-titulo);">
@@ -4513,7 +4667,7 @@ async function pintarPanelCentro() {
   for (const tipo of ['alumnado', 'profesorado']) {
     const del = encs.filter(e => e.trimestre === tri && e.tipoRespondente === tipo && Array.isArray(e.respuestas));
     if (!del.length) continue;
-    const items = ITEMS_ENCUESTA[tipo];
+    const items = itemsEncuesta(tipo);
     let filas = '';
     for (let i = 0; i < items.length; i++) {
       const valores = del.map(e => e.respuestas[i]).filter(v => typeof v === 'number');
@@ -5372,9 +5526,29 @@ function pintarCabeceraCentro() {
   if (btnMovil) { btnMovil.textContent = textoBtn; btnMovil.classList.toggle('con-cuenta', Nube.conectada()); }
 }
 
+/* Al cambiar de etapa, los grupos por defecto se sustituyen solo si la rotación
+   sigue "de fábrica" (grupos de la etapa anterior sin tocar y tabla vacía). */
+async function adaptarGruposAEtapa(etapaAntes) {
+  const rot = rotacionActual || (await DataLayer.cargarRotacion());
+  const nuevos = gruposPorDefecto();
+  const tablaVacia = !rot || !rot.dias || rot.dias.every(d => !Object.values(d || {}).some(c => c && (c.grupo || c.actividad)));
+  const deFabrica = !rot || JSON.stringify(rot.grupos || []) === JSON.stringify(gruposPorDefecto(etapaAntes));
+  if (tablaVacia && deFabrica) {
+    const base = rot || { responsables: [], dias: [{}, {}, {}, {}, {}] };
+    base.grupos = nuevos;
+    rotacionActual = base;
+    await DataLayer.guardarRotacion(base);
+    if ($('vista-rotacion').classList.contains('visible')) pintarRotacion();
+    avisar(`Etapa ${ETAPAS[etapaCentro()]}: grupos por defecto ${nuevos.join(', ')}. Cámbialos en Rotación si hace falta.`);
+  } else {
+    avisar(`Etapa ${ETAPAS[etapaCentro()]} guardada. Los grupos de la rotación se conservan; el banco de actividades y la encuesta ya usan la nueva etapa.`);
+  }
+}
+
 /* ---- Cambiar el nombre del centro (rol centro) ---- */
 function abrirModalNombreCentro() {
   $('nombre-centro-input').value = nombreCentroActual();
+  $('etapa-centro-select').value = etapaCentro();
   $('nombre-centro-ayuda').textContent = Nube.esCentro()
     ? 'Aparece en el menú de la app, en el cartel y en el panel de orientación regional.'
     : 'Sin cuenta, el nombre se guarda solo en este dispositivo (menú y cartel). Con cuenta, lo fija orientación al darte de alta.';
@@ -5540,9 +5714,12 @@ $('nombre-centro-guardar').addEventListener('click', async () => {
   try {
     if (Nube.esCentro()) await Nube.renombrarCentro(nombre);
     else localStorage.setItem(CLAVE_NOMBRE_LOCAL, nombre); // sin cuenta: solo en este dispositivo
+    const etapaAntes = etapaCentro();
+    localStorage.setItem(CLAVE_ETAPA_LOCAL, $('etapa-centro-select').value);
     $('velo-nombre-centro').classList.remove('visible');
     pintarCabeceraCentro(); pintarNube();
-    avisar('Nombre del centro actualizado.');
+    if (etapaCentro() !== etapaAntes) await adaptarGruposAEtapa(etapaAntes);
+    else avisar('Datos del centro actualizados.');
   } catch (err) {
     $('nombre-centro-error').textContent = err.message;
   }
