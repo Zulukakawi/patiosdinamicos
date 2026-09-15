@@ -4856,9 +4856,12 @@ async function pintarPanelCentro() {
   }
   kpis += `<div class="tile-dato"><div class="etiq">Incidencias últimos 7 días</div><div class="valor">${ult7}</div>${deltaHtml}</div>`;
 
-  const tri = trimestreActual();
+  // Bienestar: último trimestre con encuestas del curso (si en el actual aún no se ha pasado, se ve el anterior)
+  const analisis = analizarCentro(incs, encs, ocups);
+  const triDe = tipo => analisis.ultimoTri(tipo) || trimestreActual();
   for (const tipo of ['alumnado', 'profesorado']) {
-    const del = encs.filter(e => e.trimestre === tri && e.tipoRespondente === tipo);
+    const tri = triDe(tipo);
+    const del = encs.filter(e => e.trimestre === tri && e.tipoRespondente === tipo && cursoInicio(e.fecha) === cursoActualInicio());
     if (!del.length) continue;
     const media = del.reduce((s, e) => s + e.puntuacion, 0) / del.length;
     kpis += `<div class="tile-dato"><div class="etiq">Bienestar ${tipo} · ${tri}</div>
@@ -4970,7 +4973,8 @@ async function pintarPanelCentro() {
   /* ---- Encuestas: media por pregunta (lo accionable: qué ítem flojea) ---- */
   let encItemsHtml = '';
   for (const tipo of ['alumnado', 'profesorado']) {
-    const del = encs.filter(e => e.trimestre === tri && e.tipoRespondente === tipo && Array.isArray(e.respuestas));
+    const tri = triDe(tipo);
+    const del = encs.filter(e => e.trimestre === tri && e.tipoRespondente === tipo && Array.isArray(e.respuestas) && cursoInicio(e.fecha) === cursoActualInicio());
     if (!del.length) continue;
     const items = itemsEncuesta(tipo);
     let filas = '';
@@ -5012,7 +5016,6 @@ async function pintarPanelCentro() {
     chipsGrav += `<span class="chip-gravedad"><span class="cuadro" style="background:${COLOR_GRAVEDAD[g]}"></span>${etq}: <strong>${n}</strong></span>`;
     if (n) apilada += `<span style="flex:${n}; background:${COLOR_GRAVEDAD[g]}" title="${etq}: ${n}">${n / incs.length >= 0.12 ? Math.round(n / incs.length * 100) + ' %' : ''}</span>`;
   }
-  const analisis = analizarCentro(incs, encs, ocups);
 
   cont.innerHTML = `
     <div class="panel-kpis">${kpis}</div>
