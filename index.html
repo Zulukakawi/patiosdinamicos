@@ -875,6 +875,37 @@ body.modo-hoy .panel-hoy { display: block; }
 .fila-pregunta .num { color: var(--tinta-suave); font-weight: 700; }
 .fila-pregunta .num.flojo { color: var(--aviso); }
 
+/* Panel: lecturas automáticas, gravedad apilada y evolución por trimestre */
+.lecturas-tarjeta { margin-top: 14px; }
+.cabecera-lecturas { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cabecera-lecturas h4 { margin-bottom: 0; }
+.lista-lecturas { list-style: none; margin-top: 10px; display: grid; gap: 6px; }
+.lista-lecturas li {
+  display: flex; gap: 9px; align-items: flex-start; font-size: 13px; line-height: 1.4;
+  background: var(--hormigon); border-left: 4px solid var(--hormigon-2); border-radius: 6px; padding: 7px 10px;
+}
+.lista-lecturas li .ico { flex: none; font-size: 15px; line-height: 1.2; }
+.lista-lecturas li.malo { border-left-color: var(--aviso); }
+.lista-lecturas li.bueno { border-left-color: var(--ok); }
+.lista-lecturas li.neutro { border-left-color: var(--z-cognitiva); }
+.barra-apilada { display: flex; height: 22px; border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+.barra-apilada span { display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; min-width: 3px; }
+.evolucion-bienestar { display: flex; gap: 14px; height: 150px; padding: 0 4px; }
+.evolucion-bienestar .tri { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.evolucion-bienestar .barras { flex: 1; display: flex; gap: 6px; align-items: flex-end; justify-content: center; border-bottom: 1px solid var(--hormigon-2); padding: 0 8px; }
+.evolucion-bienestar .col { flex: 1; max-width: 42px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; }
+.evolucion-bienestar .col .caja { width: 100%; border-radius: 4px 4px 0 0; background: #3e7cb1; min-height: 0; }
+.evolucion-bienestar .col.profesorado .caja { background: #2f9e63; }
+.evolucion-bienestar .col .cima { font-size: 11.5px; font-weight: 700; color: var(--tinta); margin-bottom: 3px; }
+.evolucion-bienestar .etq { text-align: center; font-size: 12px; font-weight: 700; margin-top: 5px; color: var(--tinta-suave); }
+.evolucion-bienestar .etq small { font-weight: 400; }
+.evolucion-bienestar .tri.actual .etq { color: var(--tinta); }
+.leyenda-evolucion { display: flex; gap: 14px; margin-top: 8px; font-size: 12px; color: var(--tinta-suave); align-items: center; }
+.leyenda-evolucion span { display: inline-flex; align-items: center; gap: 5px; }
+.leyenda-evolucion .cuadro { width: 11px; height: 11px; border-radius: 3px; background: #3e7cb1; }
+.leyenda-evolucion .cuadro.profesorado { background: #2f9e63; }
+.leyenda-evolucion .datos { margin-left: auto; }
+
 /* Gravedad: chips de estado (icono + texto, nunca solo color) */
 .chips-gravedad { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
 .chip-gravedad { display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
@@ -1011,6 +1042,16 @@ body.modo-hoy .panel-hoy { display: block; }
 #hoja-informe .leyenda-informe span { margin-right: 12px; }
 #hoja-informe .leyenda-informe .punto { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; }
 #hoja-informe .pie-informe { margin-top: 14px; font-size: 9.5px; color: #5c6670; border-top: 1px solid #d8d5cc; padding-top: 6px; }
+/* Informe del patio (centro) */
+#hoja-informe .kpis-informe .valor small { font-size: 10px; font-weight: 400; color: #5c6670; }
+#hoja-informe .lecturas-informe { list-style: none; font-size: 11px; display: grid; gap: 3px; }
+#hoja-informe .lecturas-informe li { border-left: 3px solid #d8d5cc; padding: 2px 7px; }
+#hoja-informe .plano-y-tabla { display: grid; grid-template-columns: 200px 1fr; gap: 10px; align-items: start; }
+#hoja-informe .plano svg { border: 1px solid #d8d5cc; }
+#hoja-informe .punto { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; }
+#hoja-informe .tablas-3 { display: grid; grid-template-columns: 2fr 1.2fr 1fr; gap: 10px; align-items: start; }
+#hoja-informe h2 { break-after: avoid; }
+#hoja-informe table, #hoja-informe .plano-y-tabla, #hoja-informe .kpis-informe { break-inside: avoid; }
 @media print {
   /* Mismo arreglo que la encuesta en papel: el body es la rejilla de la app y,
      sin volver a bloque, la hoja se imprimía estrujada en la columna del menú. */
@@ -3761,9 +3802,9 @@ async function pintarRotacion() {
    REGISTRO RÁPIDO DE INCIDENCIAS (≤30 s, pensado para el móvil)
    ============================================================ */
 const TIPOS_INCIDENCIA = {
-  conflicto: { etiqueta: 'Conflicto', icono: '⚡' },
-  exclusion: { etiqueta: 'Exclusión', icono: '😔' },
-  otro:      { etiqueta: 'Otro',      icono: '❓' }
+  conflicto: { etiqueta: 'Conflicto', icono: '⚡', color: '#e4572e' },
+  exclusion: { etiqueta: 'Exclusión', icono: '😔', color: '#7c6fb0' },
+  otro:      { etiqueta: 'Otro',      icono: '❓', color: '#5b6a77' }
 };
 const GRAVEDADES = { 1: 'Leve', 2: 'Media', 3: 'Alta' };
 const COLOR_GRAVEDAD = { 1: 'var(--ok)', 2: 'var(--z-cognitiva)', 3: 'var(--aviso)' };
@@ -4513,6 +4554,144 @@ function fechaHaceDias(n) {
   return fechaISOLocal(d);
 }
 
+
+/* ============================================================
+   ANÁLISIS DEL CENTRO — números y lecturas automáticas compartidos por
+   el panel y por el informe imprimible (una sola fuente de verdad).
+   ============================================================ */
+function analizarCentro(incs, encs, ocups) {
+  const hoy = fechaISOLocal();
+  const d6 = fechaHaceDias(6), d13 = fechaHaceDias(13), d29 = fechaHaceDias(29);
+  const inc7 = incs.filter(i => i.fecha >= d6);
+  const incPrev7 = incs.filter(i => i.fecha >= d13 && i.fecha < d6);
+  const inc30 = incs.filter(i => i.fecha >= d29);
+  const contar = (lista, campo) => lista.reduce((m, x) => (m[x[campo]] = (m[x[campo]] || 0) + 1, m), {});
+  const mayor = obj => Object.entries(obj).sort((a, b) => b[1] - a[1])[0] || null;
+  const coma = v => v.toFixed(1).replace('.', ',');
+
+  /* Ocupación: últimos 7 días, o todos los recuentos si no hay recientes */
+  const ocup7 = ocups.filter(o => o.fecha >= d6);
+  const ventanaOcup = ocup7.length ? ocup7 : ocups;
+  const porZonaOcup = {};
+  ventanaOcup.forEach(o => Object.entries(o.niveles || {}).forEach(([zid, v]) => {
+    const acc = porZonaOcup[zid] || (porZonaOcup[zid] = { suma: 0, n: 0 });
+    acc.suma += v; acc.n++;
+  }));
+  const pctZona = zid => porZonaOcup[zid] ? Math.round(porZonaOcup[zid].suma / (3 * porZonaOcup[zid].n) * 100) : null;
+  let sumaO = 0, nO = 0;
+  Object.values(porZonaOcup).forEach(a => { sumaO += a.suma; nO += a.n; });
+  const ocupMedia = nO ? Math.round(sumaO / (3 * nO) * 100) : null;
+
+  /* Encuestas del curso actual, por trimestre y colectivo */
+  const cursoIni = cursoActualInicio();
+  const encCurso = encs.filter(e => cursoInicio(e.fecha) === cursoIni);
+  const encuesta = { alumnado: {}, profesorado: {} };
+  for (const tipo of ['alumnado', 'profesorado']) {
+    for (const tri of ['T1', 'T2', 'T3']) {
+      const del = encCurso.filter(e => e.trimestre === tri && e.tipoRespondente === tipo);
+      if (!del.length) continue;
+      const items = itemsEncuesta(tipo).map((texto, i) => {
+        const vals = del.filter(e => Array.isArray(e.respuestas) && typeof e.respuestas[i] === 'number').map(e => e.respuestas[i]);
+        return { texto, media: vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null, n: vals.length };
+      });
+      encuesta[tipo][tri] = { media: del.reduce((s, e) => s + e.puntuacion, 0) / del.length, n: del.length, items };
+    }
+  }
+  const ultimoTri = tipo => ['T3', 'T2', 'T1'].find(t => encuesta[tipo][t]) || null;
+
+  /* Cruce por zona: ocupación media × incidencias 7 días */
+  const inc7PorZona = contar(inc7.filter(i => i.zonaId), 'zonaId');
+  const cruce = zonas.map(z => ({ z, pct: pctZona(z.id), inc: inc7PorZona[z.id] || 0 }));
+  const calientes = cruce.filter(c => (c.pct || 0) >= 60 && c.inc >= 2);
+  const vacias = cruce.filter(c => c.pct !== null && c.pct <= 25);
+
+  /* ---- Lecturas automáticas (qué nos dicen los datos) ---- */
+  const lecturas = [];
+  const L = (icono, texto, tono = 'neutro') => lecturas.push({ icono, texto, tono });
+  if (inc7.length >= 3 && incPrev7.length && inc7.length >= incPrev7.length * 1.5) {
+    L('📈', `Las incidencias han subido: ${inc7.length} esta semana frente a ${incPrev7.length} la anterior. ¿Ha cambiado la rotación, el tiempo o las guardias?`, 'malo');
+  } else if (incPrev7.length >= 3 && inc7.length <= incPrev7.length * 0.5) {
+    L('📉', `Las incidencias han bajado: ${inc7.length} esta semana frente a ${incPrev7.length} la anterior.`, 'bueno');
+  }
+  const graves30 = inc30.filter(i => i.gravedad === 3);
+  const franjaTop = mayor(contar(graves30, 'franja'));
+  // (el recreo es el momento normal: solo llama la atención si es comedor, entradas u otro)
+  if (franjaTop && franjaTop[0] !== 'recreo' && graves30.length >= 3 && franjaTop[1] / graves30.length >= 0.5) {
+    L('⏰', `${franjaTop[1]} de las ${graves30.length} incidencias graves del último mes ocurren en «${(FRANJAS[franjaTop[0]] || franjaTop[0]).replace(/^[^ ]+ /, '')}»: es el momento que pide más presencia adulta.`, 'malo');
+  }
+  const excl30 = inc30.filter(i => i.tipo === 'exclusion').length;
+  if (inc30.length >= 5 && excl30 / inc30.length >= 0.4) {
+    L('🤝', `${Math.round(excl30 / inc30.length * 100)} % de las incidencias del mes son de exclusión: conviene reforzar actividades cooperativas y el papel de los responsables en las zonas.`, 'malo');
+  }
+  const cursoTop = mayor(contar(inc30.filter(i => i.curso), 'curso'));
+  if (cursoTop && inc30.length >= 4 && cursoTop[1] / inc30.length >= 0.5) {
+    L('🎒', `El grupo ${cursoTop[0]} concentra ${cursoTop[1]} de las ${inc30.length} incidencias del mes: una tutoría sobre el patio puede ayudar.`, 'neutro');
+  }
+  const zonaTop = mayor(contar(inc30.filter(i => i.zonaNombre), 'zonaNombre'));
+  if (zonaTop && inc30.length >= 4 && zonaTop[1] / inc30.length >= 0.5 && !calientes.some(c => c.z.nombre === zonaTop[0])) {
+    L('📍', `La zona «${zonaTop[0]}» acumula la mitad de las incidencias del mes (${zonaTop[1]} de ${inc30.length}): revisa su actividad, su tamaño o quién la supervisa.`, 'malo');
+  }
+  for (const c of calientes) L('🔥', `«${c.z.nombre}» está muy llena (${c.pct} %) y concentra incidencias (${c.inc} esta semana): ¿dividirla o reforzar la guardia?`, 'malo');
+  for (const c of vacias) L('💤', `«${c.z.nombre}» se queda casi vacía (${c.pct} % de ocupación): ¿cambiar la actividad o el grupo asignado?`, 'neutro');
+  for (const tipo of ['alumnado', 'profesorado']) {
+    const t = ultimoTri(tipo);
+    if (!t) continue;
+    const flojos = encuesta[tipo][t].items.filter(it => it.media !== null && it.media < 3);
+    for (const it of flojos) L('💬', `${tipo === 'alumnado' ? 'Alumnado' : 'Profesorado'} (${t}): «${it.texto}» puntúa ${coma(it.media)}/5, por debajo del aprobado.`, 'malo');
+    const tris = ['T1', 'T2', 'T3'].filter(x => encuesta[tipo][x]);
+    if (tris.length >= 2) {
+      const a = encuesta[tipo][tris[tris.length - 2]].media, b = encuesta[tipo][tris[tris.length - 1]].media;
+      if (b - a >= 0.3) L('🌱', `El bienestar del ${tipo} ha subido de ${coma(a)} a ${coma(b)} entre ${tris[tris.length - 2]} y ${tris[tris.length - 1]}.`, 'bueno');
+      else if (a - b >= 0.3) L('🍂', `El bienestar del ${tipo} ha bajado de ${coma(a)} a ${coma(b)} entre ${tris[tris.length - 2]} y ${tris[tris.length - 1]}.`, 'malo');
+    }
+  }
+  if (!lecturas.length) {
+    L('✅', incs.length || ocups.length || encs.length
+      ? 'Sin señales de alarma con los datos actuales. Sigue registrando: cuantos más datos, más fina es la lectura.'
+      : 'Aún no hay datos suficientes para hacer una lectura.', 'bueno');
+  }
+
+  return {
+    hoy, incHoy: incs.filter(i => i.fecha === hoy).length, inc7, incPrev7, inc30,
+    porTipo30: contar(inc30, 'tipo'), porGravedad30: contar(inc30, 'gravedad'), porFranja30: contar(inc30, 'franja'),
+    porCurso30: contar(inc30.filter(i => i.curso), 'curso'), porZona30: contar(inc30.filter(i => i.zonaNombre), 'zonaNombre'),
+    ventanaOcup, etiquetaVentanaOcup: ocup7.length ? 'últimos 7 días' : 'todos los recuentos', ocupMedia, pctZona,
+    encuesta, ultimoTri, cruce, lecturas
+  };
+}
+
+function htmlLecturas(lecturas) {
+  return `<ul class="lista-lecturas">${lecturas.map(l =>
+    `<li class="${l.tono}"><span class="ico">${l.icono}</span><span>${esc(l.texto)}</span></li>`).join('')}</ul>`;
+}
+
+/* Evolución del bienestar por trimestre (curso actual): columnas por colectivo */
+function htmlEvolucionBienestar(encuesta) {
+  const tris = ['T1', 'T2', 'T3'];
+  const hay = tris.filter(t => encuesta.alumnado[t] || encuesta.profesorado[t]);
+  if (hay.length < 2) return '';
+  let cols = '';
+  for (const t of tris) {
+    const a = encuesta.alumnado[t], p = encuesta.profesorado[t];
+    cols += `<div class="tri ${t === trimestreActual() ? 'actual' : ''}">
+      <div class="barras">
+        ${['alumnado', 'profesorado'].map(tipo => {
+          const d = encuesta[tipo][t];
+          return `<div class="col ${tipo}" title="${tipo} ${t}: ${d ? d.media.toFixed(1).replace('.', ',') + '/5 · ' + d.n + ' resp.' : 'sin datos'}">
+            ${d ? `<span class="cima">${d.media.toFixed(1).replace('.', ',')}</span>` : ''}
+            <span class="caja" style="height:${d ? (d.media / 5) * 100 : 0}%"></span></div>`;
+        }).join('')}
+      </div>
+      <div class="etq">${t}${!a && !p ? '<br><small>sin datos</small>' : ''}</div>
+    </div>`;
+  }
+  return `<div class="grafico-tarjeta">
+    <h4>Evolución del bienestar (curso ${cursoActualInicio()}-${(cursoActualInicio() + 1) % 100})</h4>
+    <div class="evolucion-bienestar">${cols}</div>
+    <div class="leyenda-evolucion"><span><span class="cuadro alumnado"></span>Alumnado</span><span><span class="cuadro profesorado"></span>Profesorado</span><span class="datos">Escala 1–5</span></div>
+  </div>`;
+}
+
 async function pintarPanelCentro() {
   const cont = $('contenido-panel');
   const incs = await DataLayer.listarIncidencias();
@@ -4647,16 +4826,10 @@ async function pintarPanelCentro() {
         </div>`;
         tablaCruce += `<tr><td>${esc(c.z.nombre)}</td><td>${c.pct === null ? '—' : c.pct + ' %'}</td><td>${c.inc}</td></tr>`;
       }
-      // Lectura automática: zonas que piden revisión y zonas que se quedan vacías
-      const calientes = cruce.filter(c => (c.pct || 0) >= 60 && c.inc >= 2);
-      const vacias = cruce.filter(c => c.pct !== null && c.pct <= 25);
-      let lectura = '';
-      if (calientes.length) lectura += calientes.map(c => `<span>🔥 <strong>${esc(c.z.nombre)}</strong>: muy llena y concentra incidencias — ¿dividirla o reforzar la guardia?</span>`).join('');
-      if (vacias.length) lectura += vacias.map(c => `<span>💤 <strong>${esc(c.z.nombre)}</strong>: casi vacía — ¿cambiar la actividad o el grupo?</span>`).join('');
+      // La lectura automática (zonas calientes / vacías) va en «Qué nos dicen los datos»
       cruceHtml = `<div class="grafico-tarjeta">
         <h4>Ocupación e incidencias por zona</h4>
         ${filas}
-        ${lectura ? `<div class="chips-lectura">${lectura}</div>` : ''}
         <details><summary>Ver como tabla</summary><table><tr><th>Zona</th><th>Ocupación media</th><th>Incidencias 7 días</th></tr>${tablaCruce}</table></details>
       </div>`;
     }
@@ -4697,18 +4870,29 @@ async function pintarPanelCentro() {
     if (!n) continue;
     barrasTipo += `<div class="fila-barra" title="${t.etiqueta}: ${n}">
       <span class="etiq">${t.icono} ${t.etiqueta}</span>
-      <span class="pista"><span class="barra" style="width:${(n / maxTipo) * 100}%"></span></span>
+      <span class="pista"><span class="barra" style="width:${(n / maxTipo) * 100}%; background:${t.color};"></span></span>
       <span class="num">${n}</span></div>`;
   }
-  let chipsGrav = '';
+  // Gravedad: barra apilada (proporción de un vistazo) + chips con número (nunca solo color)
+  let chipsGrav = '', apilada = '';
   for (const [g, etq] of Object.entries(GRAVEDADES)) {
     const n = incs.filter(i => i.gravedad === +g).length;
     chipsGrav += `<span class="chip-gravedad"><span class="cuadro" style="background:${COLOR_GRAVEDAD[g]}"></span>${etq}: <strong>${n}</strong></span>`;
+    if (n) apilada += `<span style="flex:${n}; background:${COLOR_GRAVEDAD[g]}" title="${etq}: ${n}">${n / incs.length >= 0.12 ? Math.round(n / incs.length * 100) + ' %' : ''}</span>`;
   }
+  const analisis = analizarCentro(incs, encs, ocups);
 
   cont.innerHTML = `
     <div class="panel-kpis">${kpis}</div>
+    <div class="grafico-tarjeta lecturas-tarjeta">
+      <div class="cabecera-lecturas">
+        <h4>🧭 Qué nos dicen los datos</h4>
+        <button class="boton secundario pequeno requiere-cuenta" data-demo-accion="imprimir el informe" id="btn-informe-centro">📄 Informe del patio (PDF)</button>
+      </div>
+      ${htmlLecturas(analisis.lecturas)}
+    </div>
     <div class="rejilla-graficos">
+      ${htmlEvolucionBienestar(analisis.encuesta)}
       <div class="grafico-tarjeta">
         <h4>Incidencias por zona (total)</h4>
         ${barras || '<p style="font-size:12.5px; color:var(--tinta-suave);">Sin incidencias registradas.</p>'}
@@ -4732,6 +4916,7 @@ async function pintarPanelCentro() {
       </div>
       <div class="grafico-tarjeta">
         <h4>Por gravedad</h4>
+        ${apilada ? `<div class="barra-apilada">${apilada}</div>` : ''}
         <div class="chips-gravedad">${chipsGrav}</div>
       </div>
       ${encItemsHtml}
@@ -4746,6 +4931,8 @@ async function pintarPanelCentro() {
         <button class="boton secundario pequeno requiere-cuenta" data-demo-accion="exportar datos" id="csv-encuestas" ${encs.length ? '' : 'disabled'}>⬇️ Encuestas (${encs.length})</button>
       </div>
     </div>`;
+
+  $('btn-informe-centro').addEventListener('click', () => imprimirInformeCentro(incs, encs, ocups));
 
   /* ---- Exportación CSV (mismo estilo que el regional: ;, BOM y coma decimal) ---- */
   const csvCampo = v => {
@@ -4795,6 +4982,90 @@ async function pintarPanelCentro() {
     descargarCSV('encuestas-bienestar', csv);
     avisar('CSV de encuestas descargado.');
   });
+}
+
+/* ---- Informe del patio (centro): PDF desde el diálogo de impresión ----
+   Reutiliza #hoja-informe y su CSS del informe regional. */
+function imprimirInformeCentro(incs, encs, ocups) {
+  const a = analizarCentro(incs, encs, ocups);
+  const hoyTxt = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+  const curso = `${cursoActualInicio()}-${(cursoActualInicio() + 1) % 100}`;
+  const patio = (patios.find(p => p.id === DataLayer.patioActivo) || {}).nombre || 'Patio';
+  const coma = v => v == null ? '–' : v.toFixed(1).replace('.', ',');
+  const n = (obj, k) => obj[k] || 0;
+
+  const kpis = [
+    ['Incidencias · últimos 30 días', a.inc30.length],
+    ['Incidencias · última semana', a.inc7.length + (a.incPrev7.length ? ` <small>(${a.incPrev7.length} la anterior)</small>` : '')],
+    ['Ocupación media de las zonas', a.ocupMedia == null ? '–' : a.ocupMedia + ' %'],
+  ];
+  for (const tipo of ['alumnado', 'profesorado']) {
+    const t = a.ultimoTri(tipo);
+    kpis.push([`Bienestar ${tipo}${t ? ' · ' + t : ''}`, t ? `${coma(a.encuesta[tipo][t].media)} /5 <small>(${a.encuesta[tipo][t].n} resp.)</small>` : '–']);
+  }
+
+  const filasZonas = zonas.map(z => {
+    const pct = a.pctZona(z.id);
+    return `<tr><td><span class="punto" style="background:${z.color}"></span>${esc(etiquetaZona(z))}</td><td>${TIPOS_ZONA[z.tipo] ? TIPOS_ZONA[z.tipo].etiqueta : z.tipo}</td>
+      <td>${formatearArea(turf.area(z.layer.toGeoJSON()))}</td><td>${n(a.porZona30, z.nombre)}</td><td>${pct == null ? '–' : pct + ' %'}</td></tr>`;
+  }).join('');
+
+  const filasTipo = Object.entries(TIPOS_INCIDENCIA).map(([k, t]) => {
+    const del = a.inc30.filter(i => i.tipo === k);
+    if (!del.length) return '';
+    return `<tr><td>${t.icono} ${t.etiqueta}</td>${[1, 2, 3].map(g => `<td>${del.filter(i => i.gravedad === g).length}</td>`).join('')}<td><strong>${del.length}</strong></td></tr>`;
+  }).join('');
+  const filasFranja = Object.entries(FRANJAS).filter(([k]) => n(a.porFranja30, k)).map(([k, etq]) => `<tr><td>${etq}</td><td>${n(a.porFranja30, k)}</td></tr>`).join('');
+  const filasCurso = Object.entries(a.porCurso30).sort((x, y) => y[1] - x[1]).map(([c, v]) => `<tr><td>${esc(c)}</td><td>${v}</td></tr>`).join('');
+
+  let encHtml = '';
+  for (const tipo of ['alumnado', 'profesorado']) {
+    const tris = ['T1', 'T2', 'T3'].filter(t => a.encuesta[tipo][t]);
+    if (!tris.length) continue;
+    const items = itemsEncuesta(tipo);
+    encHtml += `<h2>Encuesta de bienestar · ${tipo} (media 1–5)</h2>
+      <table><tr><th>Pregunta</th>${tris.map(t => `<th>${t} <small>(${a.encuesta[tipo][t].n} resp.)</small></th>`).join('')}</tr>
+      ${items.map((texto, i) => `<tr><td>${esc(texto)}</td>${tris.map(t => {
+        const it = a.encuesta[tipo][t].items[i];
+        return `<td${it && it.media !== null && it.media < 3 ? ' style="color:#c94f2a; font-weight:700;"' : ''}>${it && it.media !== null ? coma(it.media) : '–'}</td>`;
+      }).join('')}</tr>`).join('')}
+      <tr><th>Media global</th>${tris.map(t => `<th>${coma(a.encuesta[tipo][t].media)}</th>`).join('')}</tr></table>`;
+  }
+
+  $('hoja-informe').innerHTML = `<div class="informe informe-centro">
+    <h1>${esc(nombreCentroActual() || 'Mi centro')}</h1>
+    <div class="sub">Informe del patio «${esc(patio)}» — Patios Dinámicos · curso ${curso} · generado el ${hoyTxt}</div>
+    ${Nube.conectada() ? '' : '<div class="aviso-demo">Datos de este dispositivo (sin cuenta de centro)</div>'}
+
+    <div class="kpis-informe">${kpis.map(([e, v]) => `<div><div class="etiq">${e}</div><div class="valor">${v}</div></div>`).join('')}</div>
+
+    <h2>Qué nos dicen los datos</h2>
+    <ul class="lecturas-informe">${a.lecturas.map(l => `<li>${l.icono} ${esc(l.texto)}</li>`).join('')}</ul>
+
+    <h2>El patio y sus zonas</h2>
+    <div class="plano-y-tabla">
+      <div class="plano">${miniMapaZonas(patioAGeoJSON(), 300, 200)}</div>
+      <table><tr><th>Zona</th><th>Tipo</th><th>Área</th><th>Incid. 30 días</th><th>Ocupación</th></tr>${filasZonas || '<tr><td colspan="5">Sin zonas dibujadas.</td></tr>'}</table>
+    </div>
+
+    <h2>Incidencias de los últimos 30 días (${a.inc30.length})</h2>
+    <div class="tablas-3">
+      <table><tr><th>Tipo</th><th>Leve</th><th>Media</th><th>Alta</th><th>Total</th></tr>${filasTipo || '<tr><td colspan="5">Ninguna</td></tr>'}</table>
+      <table><tr><th>Momento</th><th>Incid.</th></tr>${filasFranja || '<tr><td colspan="2">Ninguna</td></tr>'}</table>
+      <table><tr><th>Grupo</th><th>Incid.</th></tr>${filasCurso || '<tr><td colspan="2">Ninguna</td></tr>'}</table>
+    </div>
+
+    ${encHtml}
+
+    <div class="pie-informe">
+      Datos agregados por grupo (nunca alumnado individual) · Ocupación: ${a.ventanaOcup.length} recuento${a.ventanaOcup.length === 1 ? '' : 's'} (${a.etiquetaVentanaOcup}) ·
+      Patios Dinámicos — Orientación educativa de La Rioja · patiosdinamicos.com
+    </div>
+  </div>`;
+
+  estiloPagina.textContent = '@page { size: A4 portrait; margin: 14mm; }';
+  document.body.classList.add('informe-abierto');
+  setTimeout(() => window.print(), 60);
 }
 
 /* ============================================================
