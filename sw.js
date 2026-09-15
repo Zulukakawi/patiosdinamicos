@@ -1,12 +1,13 @@
 /* Service worker de Patios Dinámicos.
    IMPORTANTE: al publicar cualquier cambio en index.html o en lib/,
    subir el número de VERSION para que los dispositivos se actualicen. */
-const VERSION = 'patios-v24';
+const VERSION = 'patios-v25';
 
 const APP_SHELL = [
   './',
   'index.html',
   'manifest.json',
+  'datos/centros-rioja.json',
   'icono-192.png',
   'icono-512.png',
   'lib/leaflet.css',

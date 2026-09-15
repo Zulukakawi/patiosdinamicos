@@ -2956,10 +2956,19 @@ const PALABRAS_TIPO = ['ies', 'ceip', 'cra', 'cp', 'cc', 'cpc', 'eei', 'eoi', 'c
 
 async function cargarCentrosRioja() {
   if (centrosRioja) return centrosRioja;
+  // 1) Directorio incrustado en la app (datos/centros-rioja.json, del cacheo del
+  //    service worker): instantáneo y funciona sin conexión. Overpass en directo
+  //    tardaba 10-15 s y a veces no contestaba: el usuario se rendía antes.
+  try {
+    const r = await fetch('datos/centros-rioja.json');
+    if (r.ok) { const j = await r.json(); if (j.lista && j.lista.length) return (centrosRioja = j.lista); }
+  } catch (e) { /* sin archivo local: se intenta la descarga */ }
+  // 2) Caché de una descarga anterior
   try {
     const cache = JSON.parse(localStorage.getItem(CLAVE_CENTROS) || 'null');
     if (cache && Date.now() - cache.t < 30 * 864e5) return (centrosRioja = cache.lista);
   } catch (e) { /* caché corrupta: se ignora y se vuelve a descargar */ }
+  // 3) Respaldo: OpenStreetMap en directo (Overpass)
   const consulta = '[out:json][timeout:25];area["ISO3166-2"="ES-RI"]->.a;' +
     'nwr[amenity~"^(school|college|kindergarten)$"](area.a);out center;';
   const r = await fetch('https://overpass-api.de/api/interpreter', {
