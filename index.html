@@ -140,6 +140,16 @@ nav.principal {
 }
 /* Cabecera: el nombre del centro es el título principal; la vista va debajo */
 header.cabecera .titulo-cabecera { display: flex; flex-direction: column; gap: 0; min-width: 0; }
+header.cabecera .cabecera-derecha { display: flex; align-items: center; gap: 10px; flex: none; }
+/* Acceso a la cuenta: arriba a la derecha, como en cualquier aplicación */
+.boton-cuenta {
+  background: var(--asfalto); color: var(--tiza); border: none; border-radius: 999px;
+  font-family: var(--fuente-cuerpo); font-weight: 700; font-size: 13px; cursor: pointer;
+  padding: 8px 15px; white-space: nowrap; box-shadow: var(--sombra);
+}
+.boton-cuenta:hover { background: var(--asfalto-3); }
+.boton-cuenta.con-cuenta { background: var(--tiza); color: var(--tinta); border: 1.5px solid var(--hormigon-2); box-shadow: none; }
+.boton-cuenta.con-cuenta:hover { background: var(--hormigon); }
 header.cabecera .nombre-centro-cabecera {
   display: inline-flex; align-items: center; gap: 8px; max-width: 100%;
   background: none; border: none; padding: 0; cursor: pointer; text-align: left;
@@ -1044,6 +1054,29 @@ body.modo-hoy .panel-hoy { display: block; }
 .cartel .pie-cartel {
   flex: none; text-align: center; font-size: 3.2mm; color: var(--tinta-suave); margin-top: 2.5mm;
 }
+/* Cartel semanal: plano a la izquierda, tabla zonas × días a la derecha */
+.cartel.semanal .cuerpo-semana { flex: 1; min-height: 0; display: flex; gap: 5mm; margin-top: 2mm; }
+.cartel.semanal .cuerpo-semana .zona-svg { flex: 0 0 32%; }
+.cartel.semanal .tabla-semana { flex: 1; border-collapse: separate; border-spacing: 1.5mm; table-layout: fixed; height: 100%; }
+.cartel.semanal .tabla-semana thead th {
+  font-family: var(--fuente-titulo); font-size: 4.6mm; color: #fff; background: var(--asfalto);
+  border-radius: 2mm; padding: 1.5mm; text-align: center;
+}
+.cartel.semanal .tabla-semana thead th:first-child { width: 17%; background: none; color: var(--tinta-suave); font-size: 3.5mm; text-align: left; }
+.cartel.semanal .tabla-semana tbody th {
+  text-align: left; vertical-align: middle; background: #fff; border-left: 2mm solid; border-radius: 2mm; padding: 1.5mm 2mm;
+  font-family: var(--fuente-titulo); font-size: 4.2mm; line-height: 1.15;
+}
+.cartel.semanal .tabla-semana tbody th .icono { font-size: 6mm; display: block; line-height: 1; margin-bottom: .5mm; }
+.cartel.semanal .tabla-semana td {
+  vertical-align: middle; background: #fff; border: .4mm solid var(--hormigon-2); border-radius: 2mm; padding: 1.5mm 2mm; text-align: center;
+}
+.cartel.semanal .tabla-semana td.vacia { color: var(--tinta-suave); background: var(--hormigon); }
+.cartel.semanal .tabla-semana .grupo-z { font-size: 3.6mm; font-weight: 700; color: #fff; border-radius: 999px; padding: .5mm 2.5mm; display: inline-block; }
+.cartel.semanal .tabla-semana .act-z { font-size: 3.6mm; line-height: 1.2; margin-top: .8mm; }
+.cartel.semanal .tabla-semana .resp-z { font-size: 3mm; color: var(--tinta-suave); margin-top: .4mm; }
+.cartel.semanal .cabecera-cartel h2 { font-size: 11mm; }
+.cartel.semanal .cabecera-cartel .fecha-cartel { font-size: 5mm; font-weight: 400; color: var(--tinta-suave); }
 
 @media print {
   body.cartel-abierto { display: block; height: auto; overflow: visible; background: #fff; }
@@ -1128,7 +1161,10 @@ body.modo-hoy .panel-hoy { display: block; }
     </button>
     <h1 id="titulo-vista">Configurador de patio</h1>
   </div>
-  <span class="centro-activo" id="centro-activo">🔒 Modo demostración · datos solo en este dispositivo</span>
+  <div class="cabecera-derecha">
+    <span class="centro-activo" id="centro-activo">🔒 Modo demostración · datos solo en este dispositivo</span>
+    <button id="btn-cuenta" class="boton-cuenta" title="Accede con la cuenta de tu centro">👤 Acceder</button>
+  </div>
 </header>
 
 <!-- ===================== Navegación ===================== -->
@@ -1233,11 +1269,6 @@ body.modo-hoy .panel-hoy { display: block; }
           <button id="btn-copia-cancelar" class="boton secundario pequeno">Cancelar</button>
         </div>
       </div>
-    </div>
-
-    <div class="tarjeta" id="tarjeta-nube">
-      <h3>☁️ Nube del centro</h3>
-      <div id="nube-contenido"></div>
     </div>
 
     <div class="tarjeta">
@@ -1563,6 +1594,15 @@ body.modo-hoy .panel-hoy { display: block; }
 </div>
 
 <!-- ===================== Modal: nombre del centro ===================== -->
+<!-- ===================== Modal: mi cuenta (nube del centro) ===================== -->
+<div class="velo" id="velo-cuenta">
+  <div class="modal">
+    <h2>👤 Mi cuenta</h2>
+    <div id="nube-contenido"></div>
+    <div class="pie-modal"><button class="boton secundario" id="btn-cerrar-cuenta">Cerrar</button></div>
+  </div>
+</div>
+
 <!-- ===================== Modal: privacidad ===================== -->
 <div class="velo" id="velo-privacidad">
   <div class="modal modal-privacidad">
@@ -1614,6 +1654,12 @@ body.modo-hoy .panel-hoy { display: block; }
 <!-- ===================== Cartel imprimible (A4/A3) ===================== -->
 <div id="hoja-impresion">
   <div class="controles-cartel">
+    <label>Contenido
+      <select id="cartel-contenido">
+        <option value="hoy">Patio de hoy</option>
+        <option value="semana">Plan de la semana</option>
+      </select>
+    </label>
     <label>Papel
       <select id="cartel-formato">
         <option value="A4">A4</option>
@@ -3552,8 +3598,10 @@ function generarSVGCartel(fondo) {
 
 async function generarCartel() {
   const formato = $('cartel-formato').value;
+  const semanal = $('cartel-contenido').value === 'semana';
   let orientacion = $('cartel-orientacion').value;
-  if (orientacion === 'auto') orientacion = anguloEncajeAuto().apaisado ? 'apaisado' : 'vertical';
+  // El plan semanal lleva una tabla de 6 columnas: en automático va apaisado
+  if (orientacion === 'auto') orientacion = (semanal || anguloEncajeAuto().apaisado) ? 'apaisado' : 'vertical';
 
   const [corto, largo] = MM_PAPEL[formato];
   const anchoMM = orientacion === 'apaisado' ? largo : corto;
@@ -3566,6 +3614,40 @@ async function generarCartel() {
 
   const hoy = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
   const lineas = zonas.map(z => `<span style="background:${z.color}"></span>`).join('');
+  cartel.classList.toggle('semanal', semanal);
+
+  if (semanal) {
+    // Plan de la semana: plano + tabla zonas × días, sin fecha (vale hasta que cambie la rotación)
+    const rot = rotacionActual || (await DataLayer.cargarRotacion()) || { dias: [{}, {}, {}, {}, {}] };
+    let filas = '';
+    for (const z of zonas) {
+      filas += `<tr><th style="border-left-color:${z.color}">${z.icono ? `<span class="icono">${z.icono}</span>` : ''}<span>${esc(z.nombre)}</span></th>`;
+      for (let d = 0; d < 5; d++) {
+        const c = (rot.dias[d] || {})[z.id] || {};
+        filas += c.grupo || c.actividad
+          ? `<td><span class="grupo-z" style="background:${z.color}">${esc(c.grupo || '—')}</span><div class="act-z">${esc(c.actividad || 'Juego libre')}</div>${c.responsable ? `<div class="resp-z">🧑‍🏫 ${esc(c.responsable)}</div>` : ''}</td>`
+          : '<td class="vacia">—</td>';
+      }
+      filas += '</tr>';
+    }
+    cartel.innerHTML = `
+      <div class="cabecera-cartel">
+        <h2>¡El patio esta semana!</h2>
+        <div class="fecha-cartel">Cada grupo pasa por todas las zonas</div>
+        <div class="centro-cartel">${esc(nombreCentroActual() || 'Mi centro')} · Patios Dinámicos La Rioja · patiosdinamicos.com</div>
+        <div class="lineas-patio">${lineas}</div>
+      </div>
+      <div class="cuerpo-semana">
+        <div class="zona-svg">${generarSVGCartel($('cartel-fondo').value)}</div>
+        <table class="tabla-semana">
+          <thead><tr><th>Zona</th>${DIAS_SEMANA.map(d => `<th>${d}</th>`).join('')}</tr></thead>
+          <tbody>${filas}</tbody>
+        </table>
+      </div>
+      <div class="pie-cartel">Plan semanal de zonas · vigente hasta nuevo plan — generado el ${new Date().toLocaleDateString('es-ES')}</div>`;
+    escalarCartel(anchoMM, altoMM);
+    return;
+  }
 
   let leyenda = '';
   for (let i = 0; i < zonas.length; i++) {
@@ -3593,7 +3675,11 @@ async function generarCartel() {
     <div class="leyenda-cartel">${leyenda}</div>
     <div class="pie-cartel">Cada grupo juega en su zona · ¡mañana rotamos! — generado el ${new Date().toLocaleDateString('es-ES')}</div>`;
 
-  // Escalar la hoja para que quepa en pantalla (al imprimir se anula el escalado)
+  escalarCartel(anchoMM, altoMM);
+}
+
+// Escalar la hoja para que quepa en pantalla (al imprimir se anula el escalado)
+function escalarCartel(anchoMM, altoMM) {
   const pxPorMM = 96 / 25.4;
   const escala = Math.min(
     (window.innerWidth - 48) / (anchoMM * pxPorMM),
@@ -3604,14 +3690,19 @@ async function generarCartel() {
   $('contenedor-cartel').style.height = (altoMM * pxPorMM * escala) + 'px';
 }
 
-function abrirCartel() {
+// contenido: 'hoy' (vista de hoy) | 'semana' (plan semanal, desde Rotación)
+function abrirCartel(contenido) {
+  if (!perimetroLayer || !zonas.length) { avisar('Dibuja el patio y sus zonas antes de imprimir el cartel.'); return; }
+  if (typeof contenido === 'string') $('cartel-contenido').value = contenido;
   cartelAngulo = anguloEncajeAuto().angulo;
+  $('cartel-orientacion').value = 'auto';
   $('hoja-impresion').classList.add('visible');
   document.body.classList.add('cartel-abierto');
   generarCartel();
 }
 
-$('btn-imprimir').addEventListener('click', abrirCartel);
+$('btn-imprimir').addEventListener('click', () => abrirCartel('hoy'));
+$('cartel-contenido').addEventListener('change', () => { $('cartel-orientacion').value = 'auto'; generarCartel(); });
 $('cartel-cerrar').addEventListener('click', () => {
   $('hoja-impresion').classList.remove('visible');
   document.body.classList.remove('cartel-abierto');
@@ -3840,6 +3931,8 @@ async function pintarRotacion() {
   html += '<div class="fila-botones" style="margin-bottom:12px;">' +
     '<button class="boton secundario" id="btn-generar-rotacion">🔄 Generar rotación automática</button>' +
     '<button class="boton peligro" id="btn-vaciar-rotacion" title="Deja todas las celdas vacías (los grupos y el profesorado se conservan)">🗑️ Vaciar la tabla</button>' +
+    '<button class="boton" id="btn-cartel-semana" title="Cartel con el plano y la tabla de toda la semana, para el panel del patio">🖨️ Cartel de la semana</button>' +
+    '<button class="boton secundario" id="btn-cartel-hoy" title="Cartel solo con lo de hoy">🖨️ Cartel de hoy</button>' +
     '<span id="estado-rotacion" style="font-size:12px; color:var(--tinta-suave); align-self:center;">Toca una celda para cambiarla · los cambios se guardan solos.</span></div>';
 
   html += '<div class="envoltura-tabla"><table class="tabla-rotacion"><thead><tr><th>Zona</th>';
@@ -3909,6 +4002,9 @@ async function pintarRotacion() {
       rotacionActual.dias = anterior; pintarRotacion(); autoguardarRotacion();
     } });
   });
+
+  $('btn-cartel-semana').addEventListener('click', () => abrirCartel('semana'));
+  $('btn-cartel-hoy').addEventListener('click', () => abrirCartel('hoy'));
 
   $('btn-generar-rotacion').addEventListener('click', () => {
     const gs = rotacionActual.grupos;
@@ -5729,19 +5825,10 @@ function pintarNube() {
   }
 
   if (!Nube.conectada()) {
-    cont.innerHTML = `
-      <p class="ayuda">Con la cuenta del centro, todo lo que se registra aquí se guarda también en la nube
-        y todos los dispositivos del centro ven lo mismo. La cuenta la facilita orientación regional.</p>
-      <div class="campo-nube"><label for="nube-email">Correo</label>
-        <input type="email" id="nube-email" autocomplete="username" placeholder="centro@ejemplo.org"></div>
-      <div class="campo-nube"><label for="nube-clave">Contraseña</label>
-        <input type="password" id="nube-clave" autocomplete="current-password"></div>
-      <div class="login-error" id="nube-error"></div>
-      <div class="fila-botones" style="margin-top:11px;">
-        <button id="btn-nube-entrar" class="boton pequeno">Entrar</button>
-      </div>`;
-    $('btn-nube-entrar').addEventListener('click', entrarNube);
-    $('nube-clave').addEventListener('keydown', e => { if (e.key === 'Enter') entrarNube(); });
+    // El acceso se hace desde la pantalla grande (botón 👤 Acceder de la cabecera)
+    cont.innerHTML = `<p class="ayuda">No has entrado con ninguna cuenta: los datos se guardan solo en este dispositivo.</p>
+      <div class="fila-botones"><button id="btn-nube-entrar" class="boton pequeno">Acceder con la cuenta del centro</button></div>`;
+    $('btn-nube-entrar').addEventListener('click', () => { $('velo-cuenta').classList.remove('visible'); abrirModalInicio(); });
     return;
   }
 
@@ -5785,6 +5872,7 @@ function pintarNube() {
     });
   }
   $('btn-nube-salir').addEventListener('click', async () => {
+    $('velo-cuenta').classList.remove('visible');
     await Nube.salir();
     document.body.classList.add('perfil-centro'); // ocultar de nuevo el menú regional
     pintarNube();
@@ -5801,10 +5889,6 @@ function ofrecerSubida() {
   });
 }
 
-// Login desde la tarjeta ☁️ del editor
-function entrarNube() {
-  procesarLogin({ emailEl: 'nube-email', claveEl: 'nube-clave', btn: $('btn-nube-entrar'), errEl: 'nube-error' });
-}
 // Login desde el modal de inicio
 function loginDesdeModal() {
   procesarLogin({ emailEl: 'login-email', claveEl: 'login-clave', btn: $('btn-login-entrar'), errEl: 'login-error' });
@@ -5931,6 +6015,12 @@ function pintarCabeceraCentro() {
     : admin ? '👤 Regional' : '👤 Entrar';
   const btn = $('btn-cambiar-perfil');
   if (btn) btn.textContent = textoBtn;
+  const btnCab = $('btn-cuenta'); // cabecera de escritorio
+  if (btnCab) {
+    btnCab.textContent = Nube.conectada() ? textoBtn : '👤 Acceder';
+    btnCab.classList.toggle('con-cuenta', Nube.conectada());
+    btnCab.title = Nube.conectada() ? 'Ver tu cuenta, sincronizar o salir' : 'Accede con la cuenta de tu centro';
+  }
   const btnMovil = $('btn-cuenta-movil'); // el mismo botón, en la barra superior del móvil
   if (btnMovil) { btnMovil.textContent = textoBtn; btnMovil.classList.toggle('con-cuenta', Nube.conectada()); }
 }
@@ -6108,7 +6198,17 @@ $('velo-tutorial').addEventListener('pointerup', e => {
 // Cerrar tocando fuera del recuadro
 $('velo-tutorial').addEventListener('click', e => { if (e.target === $('velo-tutorial')) cerrarTutorial(); });
 $('perfil-eleccion-centro').addEventListener('click', () => aplicarPerfil('centro'));
-$('btn-cambiar-perfil').addEventListener('click', abrirModalInicio);
+/* Un solo punto de entrada a la cuenta (cabecera, pie del menú y barra móvil):
+   sin sesión → pantalla de acceso; con sesión → modal «Mi cuenta». */
+function abrirCuenta() {
+  if (!Nube.conectada()) { abrirModalInicio(); return; }
+  pintarNube();
+  $('velo-cuenta').classList.add('visible');
+}
+$('btn-cambiar-perfil').addEventListener('click', abrirCuenta);
+$('btn-cuenta').addEventListener('click', abrirCuenta);
+$('btn-cerrar-cuenta').addEventListener('click', () => $('velo-cuenta').classList.remove('visible'));
+$('velo-cuenta').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('visible'); });
 $('cabecera-centro').addEventListener('click', () => { if (!Nube.esAdmin()) abrirModalNombreCentro(); });
 
 /* ---- Modo demostración (sin cuenta): se puede probar todo, pero nada sale del
@@ -6124,7 +6224,7 @@ document.addEventListener('click', e => {
     { texto: 'Solicitar cuenta', fn: abrirSolicitudCuenta });
 }, true);
 $('centro-activo').addEventListener('click', () => { if (document.body.classList.contains('modo-demo')) abrirSolicitudCuenta(); });
-$('btn-cuenta-movil').addEventListener('click', abrirModalInicio);
+$('btn-cuenta-movil').addEventListener('click', abrirCuenta);
 
 /* ---- Modal: nombre del centro ---- */
 $('nombre-centro-cancelar').addEventListener('click', () => $('velo-nombre-centro').classList.remove('visible'));
