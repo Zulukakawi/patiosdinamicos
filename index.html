@@ -116,6 +116,9 @@ header.cabecera .centro-activo {
   background: var(--hormigon); border: 1px solid var(--hormigon-2);
   padding: 5px 12px; border-radius: 999px;
 }
+.demo-que-puedes { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; font-size: 12.5px; color: var(--tinta); }
+.demo-que-puedes > div { display: flex; gap: 8px; align-items: flex-start; background: var(--hormigon); border-radius: 8px; padding: 8px 10px; line-height: 1.4; }
+.demo-que-puedes span { flex: none; }
 body.modo-demo header.cabecera .centro-activo { background: #fdf3d7; border-color: #ecd9a0; color: #7a5a06; cursor: pointer; }
 body.modo-demo .requiere-cuenta { opacity: .55; }
 /* Marca de agua sobre el cartel en demostración (la impresión está capada) */
@@ -1372,10 +1375,13 @@ body.modo-hoy .panel-hoy { display: block; }
     <!-- Modo demostración (secundario) -->
     <div id="bienvenida-demo" style="display:none;">
       <h2>Modo demostración</h2>
-      <p style="font-size:13px; color:var(--tinta-suave); margin-bottom:8px;">
-        Sin cuenta: los datos se guardan <strong>solo en este dispositivo</strong> y no se envían a ningún sitio.
-        Ideal para probar la app antes de solicitar una cuenta.
+      <p style="font-size:13px; color:var(--tinta-suave); margin-bottom:10px;">
+        Prueba la app sin cuenta: los datos se guardan <strong>solo en este dispositivo</strong> y no se envían a ningún sitio.
       </p>
+      <div class="demo-que-puedes">
+        <div><span>✅</span> Dibujar el patio y sus zonas sobre la foto aérea, planificar la rotación semanal, registrar incidencias y recuentos, pasar encuestas en kiosco y ver el panel del centro.</div>
+        <div><span>🔒</span> Con la cuenta del centro, además: imprimir el cartel y las encuestas en papel, exportar datos, varios patios y sincronización entre dispositivos.</div>
+      </div>
       <div class="botonera-grande" style="grid-template-columns:1fr;">
         <button id="perfil-eleccion-centro"><span class="ic">🏫</span>Probar como equipo del centro</button>
       </div>
@@ -5394,11 +5400,11 @@ function abrirModalInicio() {
 
 $('btn-login-entrar').addEventListener('click', loginDesdeModal);
 $('login-clave').addEventListener('keydown', e => { if (e.key === 'Enter') loginDesdeModal(); });
-$('btn-ver-demo').addEventListener('click', () => aplicarPerfil('centro')); // directo, sin paso intermedio
+$('btn-ver-demo').addEventListener('click', () => mostrarVistaInicio('demo'));
 $('btn-ver-solicitud').addEventListener('click', () => { $('sol-error').textContent = ''; mostrarVistaInicio('solicitud'); });
 $('btn-sol-volver').addEventListener('click', () => mostrarVistaInicio('login'));
 $('btn-enviada-volver').addEventListener('click', () => mostrarVistaInicio('login'));
-$('btn-enviada-demo').addEventListener('click', () => aplicarPerfil('centro'));
+$('btn-enviada-demo').addEventListener('click', () => mostrarVistaInicio('demo'));
 $('btn-volver-login').addEventListener('click', () => mostrarVistaInicio('login'));
 $('btn-sol-enviar').addEventListener('click', enviarSolicitudCuenta);
 $('btn-ver-recuperar').addEventListener('click', () => {
