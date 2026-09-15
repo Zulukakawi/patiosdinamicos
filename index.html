@@ -3162,15 +3162,18 @@ function normalizarTexto(t) {
   return t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[.·]/g, '');
 }
 
-// Palabras de tipo de centro: no se exige que aparezcan en el nombre (en OSM
-// "IES Sagasta" figura como "Instituto Práxedes Mateo Sagasta"), solo puntúan.
-const PALABRAS_TIPO = ['ies', 'ceip', 'cra', 'cp', 'cc', 'cpc', 'eei', 'eoi', 'colegio', 'instituto', 'escuela', 'centro'];
+// Palabras de tipo de centro: no se exige que aparezcan en el nombre (un
+// concertado figura como "CPEIPS Los Boscos" y la gente escribe "colegio Boscos"),
+// solo puntúan. Incluye las siglas del directorio oficial.
+const PALABRAS_TIPO = ['ies', 'sies', 'ceip', 'cra', 'cp', 'cc', 'cpc', 'cpeips', 'cpeip', 'cpes', 'ceo', 'cee', 'cpee', 'eei', 'eipc', 'eipcm', 'eoi',
+  'colegio', 'instituto', 'escuela', 'centro', 'publico', 'privado', 'concertado', 'infantil', 'primaria', 'secundaria'];
 
 async function cargarCentrosRioja() {
   if (centrosRioja) return centrosRioja;
-  // 1) Directorio incrustado en la app (datos/centros-rioja.json, del cacheo del
-  //    service worker): instantáneo y funciona sin conexión. Overpass en directo
-  //    tardaba 10-15 s y a veces no contestaba: el usuario se rendía antes.
+  // 1) Directorio OFICIAL incrustado en la app (datos/centros-rioja.json, generado
+  //    con datos/generar-centros.py desde el mapa de centros del Gobierno de La
+  //    Rioja; en el app shell del service worker): instantáneo y sin conexión.
+  //    Cada centro: { n: "IES Valle del Cidacos", m: municipio, lat, lon, t: tipo, d: dirección }.
   try {
     const r = await fetch('datos/centros-rioja.json');
     if (r.ok) { const j = await r.json(); if (j.lista && j.lista.length) return (centrosRioja = j.lista); }
@@ -3218,7 +3221,7 @@ function buscarCentros(consulta) {
   if (!obligatorios.length) return []; // solo "ies" o "colegio" listaría media Rioja
   const resultados = [];
   for (const c of centrosRioja) {
-    const nombre = normalizarTexto(c.n + ' ' + c.m);
+    const nombre = normalizarTexto(c.n + ' ' + c.m + ' ' + (c.t || ''));
     if (!obligatorios.every(t => nombre.includes(t))) continue;
     resultados.push({ c, puntos: tokens.filter(t => nombre.includes(t)).length });
   }
@@ -3251,7 +3254,7 @@ function pintarSugerencias(lista) {
   ultimaLista = lista;
   sugerenciaActiva = -1;
   cajaSug.innerHTML = lista.map((c, i) =>
-    `<button class="sug" data-i="${i}">🏫 ${c.n}${c.m ? `<small>${c.m}</small>` : ''}</button>`).join('');
+    `<button class="sug" data-i="${i}">🏫 ${esc(c.n)}${c.m || c.t ? `<small>${esc([c.m, c.t].filter(Boolean).join(' · '))}</small>` : ''}</button>`).join('');
   cajaSug.style.display = 'block';
   cajaSug.querySelectorAll('.sug').forEach(b =>
     b.addEventListener('click', () => elegirSugerencia(lista[+b.dataset.i])));

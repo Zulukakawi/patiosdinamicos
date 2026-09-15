@@ -230,3 +230,8 @@ registrada (patio guardado, incidencia, etc.). La columna se crea al ejecutar
     bienestar por trimestre, tablas de zonas/incidencias/encuesta); estados
     vacíos con salida, checklist "Primeros pasos" en el editor, modal de
     privacidad y versión del pie leída del service worker.
+13. ✅ **Directorio oficial de centros:** `datos/centros-rioja.json` se genera con
+    `py datos/generar-centros.py` desde el GeoJSON del mapa de centros del
+    Gobierno de La Rioja (bi.larioja.org, 147 centros con patio; fuera EOI, CEPA,
+    conservatorios y ESD). Sustituye a la lista de OSM (erratas y duplicados).
+    Re-ejecutar el script cada curso y subir la versión del service worker.
