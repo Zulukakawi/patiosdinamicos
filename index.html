@@ -71,6 +71,8 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 /* Foco visible al navegar con teclado (no al hacer clic con el ratón) */
 :focus-visible { outline: 2px solid var(--z-cognitiva); outline-offset: 2px; }
+.resaltado { animation: parpadeo 0.6s ease-in-out 3; }
+@keyframes parpadeo { 50% { box-shadow: 0 0 0 4px var(--z-cognitiva); } }
 nav.principal button:focus-visible { outline-color: var(--tiza); outline-offset: -3px; }
 
 html, body { height: 100%; }
@@ -210,6 +212,13 @@ nav.principal .pie #btn-cambiar-perfil {
   padding: 4px 9px; margin-bottom: 7px;
 }
 nav.principal .pie #btn-cambiar-perfil:hover { background: rgba(255,255,255,.1); }
+nav.principal .pie .enlaces-pie { margin-bottom: 6px; color: rgba(255,255,255,.35); }
+nav.principal .pie .enlaces-pie button {
+  display: inline; width: auto; border-left: none; border-radius: 0;
+  background: none; border: none; padding: 0; cursor: pointer; color: rgba(255,255,255,.6);
+  font-family: var(--fuente-cuerpo); font-size: 11px; text-decoration: underline; text-underline-offset: 2px;
+}
+nav.principal .pie .enlaces-pie button:hover { color: var(--tiza); background: none; }
 /* Botón de cuenta de la barra superior (solo móvil; en escritorio va al pie del menú) */
 .logo-caja .cuenta-movil {
   display: none; margin-left: auto; flex: none; max-width: 48%;
@@ -294,6 +303,23 @@ aside.herramientas {
   font-size: 12px; flex: none;
 }
 .tarjeta p.ayuda { font-size: 12px; color: var(--tinta-suave); margin-bottom: 9px; }
+/* Primeros pasos: lista que se va marcando sola */
+.primeros-pasos { background: #fdf6e3; border-color: #f0dfb0; }
+.primeros-pasos h3 { justify-content: space-between; }
+.primeros-pasos .cerrar-pasos { background: none; border: none; cursor: pointer; color: var(--tinta-suave); font-size: 13px; padding: 2px 4px; }
+.primeros-pasos ol { list-style: none; display: grid; gap: 4px; }
+.primeros-pasos li button {
+  width: 100%; text-align: left; background: none; border: none; cursor: pointer;
+  font-family: var(--fuente-cuerpo); font-size: 12.5px; color: var(--tinta);
+  display: flex; gap: 8px; align-items: center; padding: 4px 4px; border-radius: 6px;
+}
+.primeros-pasos li button:hover { background: rgba(0,0,0,.05); }
+.primeros-pasos li .marca { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--tinta-suave); flex: none; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; }
+.primeros-pasos li.hecho .marca { background: var(--ok); border-color: var(--ok); color: #fff; }
+.primeros-pasos li.hecho button { color: var(--tinta-suave); text-decoration: line-through; }
+.primeros-pasos li.siguiente button { font-weight: 700; }
+.primeros-pasos .progreso { height: 5px; background: rgba(0,0,0,.08); border-radius: 3px; margin: 2px 0 9px; overflow: hidden; }
+.primeros-pasos .progreso span { display: block; height: 100%; background: var(--ok); transition: width .3s; }
 
 .boton {
   font-family: var(--fuente-cuerpo); font-weight: 700; font-size: 13px;
@@ -427,6 +453,9 @@ button.enlace {
 }
 .modal textarea { font-family: ui-monospace, monospace; font-size: 11.5px; min-height: 220px; }
 .modal .pie-modal { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+#velo-privacidad { z-index: 2200; } /* por encima del modal de acceso */
+.modal-privacidad { max-width: 560px; }
+.modal-privacidad p { font-size: 13px; line-height: 1.5; margin-bottom: 9px; }
 .selector-tipos { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 4px; }
 .selector-tipos button {
   border: 2px solid var(--hormigon-2); background: var(--tiza); border-radius: 8px;
@@ -472,6 +501,14 @@ body.modo-hoy .panel-hoy { display: block; }
 .etiqueta-zona-mapa::before { display: none !important; }
 
 /* ---------- Vistas mock del resto de módulos ---------- */
+.estado-vacio {
+  max-width: 560px; background: var(--tiza); border: 1.5px dashed var(--hormigon-2); border-radius: var(--radio);
+  padding: 26px 24px; text-align: center;
+}
+.estado-vacio .ico { font-size: 40px; line-height: 1; margin-bottom: 8px; }
+.estado-vacio h3 { font-family: var(--fuente-titulo); font-size: 17px; margin-bottom: 6px; }
+.estado-vacio p { font-size: 13.5px; color: var(--tinta-suave); margin-bottom: 14px; }
+.estado-vacio .fila-botones { justify-content: center; }
 .vista-mock { padding: 28px; overflow-y: auto; height: 100%; }
 .vista-mock h2 { font-family: var(--fuente-titulo); font-size: 22px; margin-bottom: 6px; }
 .vista-mock > p { color: var(--tinta-suave); max-width: 640px; margin-bottom: 18px; font-size: 14px; }
@@ -1109,7 +1146,8 @@ body.modo-hoy .panel-hoy { display: block; }
   <button class="solo-admin" id="btn-nav-solicitudes" data-vista="vista-solicitudes" data-titulo="Solicitudes de acceso"><span class="ico">✉️</span><span class="etq">Solicitudes</span></button>
   <div class="pie">
     <button id="btn-cambiar-perfil" title="Entrar con tu cuenta o cambiar de perfil">👤 Entrar</button>
-    <span class="version-pie">Piloto curso 2026-27<br>Orientación educativa de La Rioja</span>
+    <div class="enlaces-pie"><button id="btn-tutorial-pie">📖 Tutorial</button> · <button id="btn-privacidad-pie">🔒 Privacidad</button></div>
+    <span class="version-pie">Piloto curso 2026-27 · <span id="version-app" title="Versión de la app">v28</span><br>Orientación educativa de La Rioja</span>
   </div>
 </nav>
 
@@ -1132,6 +1170,11 @@ body.modo-hoy .panel-hoy { display: block; }
   </div>
 
   <aside class="herramientas">
+
+    <div class="tarjeta solo-edicion primeros-pasos" id="primeros-pasos" style="display:none;">
+      <h3>🚀 Primeros pasos <button id="btn-ocultar-pasos" class="cerrar-pasos" title="Ocultar esta lista" aria-label="Ocultar la lista de primeros pasos">✕</button></h3>
+      <ol id="lista-pasos"></ol>
+    </div>
 
     <div class="tarjeta solo-edicion">
       <h3>🏫 Patio activo</h3>
@@ -1340,6 +1383,7 @@ body.modo-hoy .panel-hoy { display: block; }
       </p>
       <p style="font-size:12px; color:var(--tinta-suave); text-align:center; margin-top:4px;">
         <button class="enlace" id="btn-ver-tutorial">📖 Ver tutorial</button>
+        · <button class="enlace" id="btn-ver-privacidad">🔒 Privacidad</button>
         · <button class="enlace" id="btn-ver-demo">explorar en modo demostración</button> <span style="opacity:.75;">(sin imprimir ni exportar)</span>
       </p>
     </div>
@@ -1519,6 +1563,19 @@ body.modo-hoy .panel-hoy { display: block; }
 </div>
 
 <!-- ===================== Modal: nombre del centro ===================== -->
+<!-- ===================== Modal: privacidad ===================== -->
+<div class="velo" id="velo-privacidad">
+  <div class="modal modal-privacidad">
+    <h2>🔒 Privacidad y datos</h2>
+    <p><strong>Qué guarda la app.</strong> El plano del patio y sus zonas, la rotación semanal, las incidencias, los recuentos de ocupación y las encuestas de bienestar. Los nombres del profesorado responsable se apuntan solo como nombre de pila o iniciales.</p>
+    <p><strong>Qué no guarda nunca.</strong> Ningún dato de alumnos y alumnas: no hay nombres, listas de clase ni fichas individuales. Las incidencias se registran por curso o grupo, y las encuestas son anónimas y solo se agregan por curso. Es una decisión de diseño: la app no tiene dónde escribir el nombre de un alumno.</p>
+    <p><strong>Dónde se guarda.</strong> Sin cuenta, todo queda en este dispositivo (en el navegador). Con la cuenta del centro, los datos se sincronizan con la nube de la plataforma (Supabase) para que todos los dispositivos del centro vean lo mismo. Cada centro solo accede a sus propios datos.</p>
+    <p><strong>Quién más los ve.</strong> Quien coordina el programa desde orientación educativa ve los datos de los centros de forma agregada, para acompañarlos y evaluar el programa; nunca datos individuales de alumnado, porque no existen.</p>
+    <p><strong>Cuenta del centro.</strong> El correo con el que entra el centro se usa solo para identificarlo. Para borrar la cuenta y todos sus datos basta con pedirlo a orientación.</p>
+    <div class="pie-modal"><button class="boton" id="btn-cerrar-privacidad">Entendido</button></div>
+  </div>
+</div>
+
 <div class="velo" id="velo-nombre-centro">
   <div class="modal">
     <h2>Mi centro</h2>
@@ -2899,6 +2956,46 @@ function pintarResumen() {
     (problemas ? `<span style="color:var(--aviso); font-weight:700;">${problemas} zona(s) con avisos</span>` : '<span style="color:var(--ok); font-weight:700;">todo válido ✓</span>');
 }
 
+/* ---- Primeros pasos: checklist que se marca sola (nombre → perímetro →
+   zonas → rotación → primer registro). Se oculta al completarla o al cerrarla. ---- */
+const CLAVE_PASOS_OCULTOS = 'patios-dinamicos:pasos-ocultos';
+async function pintarPrimerosPasos() {
+  const caja = $('primeros-pasos');
+  if (!caja) return;
+  if (localStorage.getItem(CLAVE_PASOS_OCULTOS)) { caja.style.display = 'none'; return; }
+  const rot = rotacionActual || (await DataLayer.cargarRotacion());
+  const hayRotacion = !!(rot && rot.dias && rot.dias.some(d => Object.values(d || {}).some(c => c && (c.grupo || c.actividad))));
+  const hayRegistro = (await DataLayer.listarIncidencias()).length > 0 || (await DataLayer.listarOcupaciones()).length > 0;
+  const pasos = [
+    { texto: 'Pon el nombre y la etapa de tu centro', hecho: !!nombreCentroActual(), fn: abrirModalNombreCentro },
+    { texto: 'Dibuja el perímetro del patio', hecho: !!perimetroLayer, fn: () => resaltar('btn-dibujar-perimetro') },
+    { texto: 'Crea al menos dos zonas', hecho: zonas.length >= 2, fn: () => resaltar(perimetroLayer ? 'btn-dibujar-zona' : 'btn-dibujar-perimetro') },
+    { texto: 'Rellena la rotación semanal', hecho: hayRotacion, fn: () => irAVista('vista-rotacion') },
+    { texto: 'Haz el primer registro (incidencia o recuento)', hecho: hayRegistro, fn: () => irAVista('vista-incidencias') }
+  ];
+  const hechos = pasos.filter(p => p.hecho).length;
+  if (hechos === pasos.length) { caja.style.display = 'none'; return; }
+  caja.style.display = '';
+  const siguiente = pasos.findIndex(p => !p.hecho);
+  $('lista-pasos').innerHTML = `<li class="progreso-li"><div class="progreso"><span style="width:${hechos / pasos.length * 100}%"></span></div></li>` +
+    pasos.map((p, i) => `<li class="${p.hecho ? 'hecho' : ''} ${i === siguiente ? 'siguiente' : ''}">
+      <button type="button" data-paso="${i}"><span class="marca">${p.hecho ? '✓' : ''}</span><span>${p.texto}</span></button></li>`).join('');
+  $('lista-pasos').querySelectorAll('[data-paso]').forEach(b => b.addEventListener('click', () => pasos[+b.dataset.paso].fn()));
+}
+// Lleva la vista al botón y lo hace parpadear un momento
+function resaltar(id) {
+  const b = $(id);
+  if (!b) return;
+  b.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  b.classList.add('resaltado');
+  setTimeout(() => b.classList.remove('resaltado'), 1800);
+}
+$('btn-ocultar-pasos').addEventListener('click', () => {
+  localStorage.setItem(CLAVE_PASOS_OCULTOS, '1');
+  $('primeros-pasos').style.display = 'none';
+  avisar('Lista de primeros pasos ocultada.', { texto: 'Deshacer', fn: () => { localStorage.removeItem(CLAVE_PASOS_OCULTOS); pintarPrimerosPasos(); } });
+});
+
 function refrescarTodo() {
   const hayPerimetro = !!perimetroLayer;
   $('btn-borrar-perimetro').disabled = !hayPerimetro;
@@ -2913,6 +3010,7 @@ function refrescarTodo() {
   pintarResumen();
   if (modoHoy) pintarVistaHoy();
   autoguardarPatio();
+  pintarPrimerosPasos();
 }
 
 /* ---------- Autoguardado del patio ----------
@@ -3550,6 +3648,38 @@ const PATIO_EJEMPLO = {
 $('btn-ejemplo').addEventListener('click', () => cargarDesdeGeoJSON(PATIO_EJEMPLO));
 
 /* ============================================================
+   NAVEGAR POR CÓDIGO + ESTADOS VACÍOS
+   ============================================================ */
+function irAVista(id) {
+  const b = document.querySelector(`nav.principal button[data-vista="${id}"]`);
+  if (b) b.click();
+}
+
+/* Estado vacío con salida: las vistas que dependen del plano no se quedan en
+   un texto mudo, ofrecen ir a dibujarlo o cargar el ejemplo para probar. */
+function htmlEstadoVacio({ icono, titulo, texto, botones = [] }) {
+  return `<div class="estado-vacio">
+    <div class="ico">${icono}</div>
+    <h3>${titulo}</h3>
+    <p>${texto}</p>
+    <div class="fila-botones">${botones.map(b => `<button class="boton ${b.secundario ? 'secundario' : ''}" data-vacio-accion="${b.accion}">${b.texto}</button>`).join('')}</div>
+  </div>`;
+}
+function activarEstadoVacio(cont) {
+  cont.querySelectorAll('[data-vacio-accion]').forEach(b => b.addEventListener('click', () => {
+    const a = b.dataset.vacioAccion;
+    if (a === 'editor') irAVista('vista-editor');
+    else if (a === 'ejemplo') { cargarDesdeGeoJSON(PATIO_EJEMPLO); irAVista('vista-editor'); avisar('Patio de ejemplo cargado: ya puedes probar el resto de la app.'); }
+    else if (a.startsWith('vista-')) irAVista(a);
+  }));
+}
+const VACIO_SIN_ZONAS = {
+  icono: '🗺️', titulo: 'Todavía no hay zonas',
+  texto: 'Esta pantalla trabaja sobre las zonas de tu patio. Dibuja el perímetro y las zonas en «Patio y zonas», o carga un patio de ejemplo para ver cómo funciona.',
+  botones: [{ texto: '🗺️ Ir a Patio y zonas', accion: 'editor' }, { texto: '🎓 Cargar patio de ejemplo', accion: 'ejemplo', secundario: true }]
+};
+
+/* ============================================================
    EDITOR DE ROTACIÓN SEMANAL (grupos × días × zonas)
    ============================================================ */
 let rotacionActual = null;
@@ -3684,7 +3814,7 @@ async function pintarRotacion() {
   // Rotaciones guardadas antes de existir los responsables
   if (!rotacionActual.responsables) rotacionActual.responsables = [];
   if (!zonas.length) {
-    cont.innerHTML = '<div class="tarjeta" style="max-width:520px;">Primero define el patio y sus zonas en <strong>🗺️ Patio y zonas</strong>.</div>';
+    cont.innerHTML = htmlEstadoVacio(VACIO_SIN_ZONAS); activarEstadoVacio(cont);
     return;
   }
   const { dia: diaHoy } = diaLectivoHoy();
@@ -3898,7 +4028,7 @@ function partirEnLineas(texto, maxCars, maxLineas) {
 async function pintarIncidencias() {
   const cont = $('contenido-incidencias');
   if (!perimetroLayer || !zonas.length) {
-    cont.innerHTML = '<div class="tarjeta" style="max-width:520px;">Primero define el patio y sus zonas en <strong>🗺️ Patio y zonas</strong>.</div>';
+    cont.innerHTML = htmlEstadoVacio(VACIO_SIN_ZONAS); activarEstadoVacio(cont);
     return;
   }
   incSel = { zonaId: undefined, zonaNombre: '', tipo: null, curso: null, gravedad: null, franja: franjaPorHora() };
@@ -4055,7 +4185,7 @@ let ocupSel = {};
 async function pintarOcupacion() {
   const cont = $('contenido-ocupacion');
   if (!perimetroLayer || !zonas.length) {
-    cont.innerHTML = '<div class="tarjeta" style="max-width:520px;">Primero define el patio y sus zonas en <strong>🗺️ Patio y zonas</strong>.</div>';
+    cont.innerHTML = htmlEstadoVacio(VACIO_SIN_ZONAS); activarEstadoVacio(cont);
     return;
   }
   ocupSel = {};
@@ -4699,10 +4829,12 @@ async function pintarPanelCentro() {
   const ocups = await DataLayer.listarOcupaciones();
 
   if (!incs.length && !encs.length && !ocups.length) {
-    cont.innerHTML = `<div class="tarjeta" style="max-width:520px;">Aún no hay datos.
-      Registra incidencias en <strong>📝 Incidencias</strong>, haz recuentos en
-      <strong>🙌 Ocupación</strong> y pasa la encuesta en
-      <strong>💬 Encuestas</strong>: este panel se irá llenando solo.</div>`;
+    cont.innerHTML = htmlEstadoVacio(zonas.length ? {
+      icono: '📊', titulo: 'El panel se llena solo',
+      texto: 'Registra incidencias durante la guardia, haz recuentos de ocupación y pasa la encuesta trimestral: cada registro aparece aquí convertido en gráficos y lecturas.',
+      botones: [{ texto: '📝 Registrar una incidencia', accion: 'vista-incidencias' }, { texto: '🙌 Hacer un recuento', accion: 'vista-ocupacion', secundario: true }, { texto: '💬 Pasar la encuesta', accion: 'vista-encuestas', secundario: true }]
+    } : VACIO_SIN_ZONAS);
+    activarEstadoVacio(cont);
     return;
   }
 
@@ -5937,6 +6069,19 @@ function tutorialAvanzar(d) {
 }
 
 $('btn-ver-tutorial').addEventListener('click', abrirTutorial);
+$('btn-tutorial-pie').addEventListener('click', abrirTutorial);
+function abrirPrivacidad() { $('velo-privacidad').classList.add('visible'); }
+$('btn-ver-privacidad').addEventListener('click', abrirPrivacidad);
+$('btn-privacidad-pie').addEventListener('click', abrirPrivacidad);
+$('btn-cerrar-privacidad').addEventListener('click', () => $('velo-privacidad').classList.remove('visible'));
+$('velo-privacidad').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('visible'); });
+
+/* Versión de la app en el pie: se lee del service worker (única fuente),
+   así no hay que acordarse de cambiarla en dos sitios. */
+fetch('sw.js', { cache: 'no-store' }).then(r => r.text()).then(t => {
+  const m = t.match(/patios-v(\d+)/);
+  if (m) $('version-app').textContent = 'v' + m[1];
+}).catch(() => {});
 $('tuto-next').addEventListener('click', () => tutorialAvanzar(1));
 $('tuto-prev').addEventListener('click', () => tutorialAvanzar(-1));
 $('tuto-saltar').addEventListener('click', cerrarTutorial);
@@ -5988,7 +6133,7 @@ $('nombre-centro-guardar').addEventListener('click', async () => {
     const etapaAntes = etapaCentro();
     localStorage.setItem(CLAVE_ETAPA_LOCAL, $('etapa-centro-select').value);
     $('velo-nombre-centro').classList.remove('visible');
-    pintarCabeceraCentro(); pintarNube();
+    pintarCabeceraCentro(); pintarNube(); pintarPrimerosPasos();
     if (etapaCentro() !== etapaAntes) await adaptarGruposAEtapa(etapaAntes);
     else avisar('Datos del centro actualizados.');
   } catch (err) {
@@ -6480,7 +6625,7 @@ document.querySelectorAll('nav.principal button[data-vista]').forEach(b => {
     document.querySelectorAll('.vista').forEach(v => v.classList.remove('visible'));
     $(b.dataset.vista).classList.add('visible');
     $('titulo-vista').textContent = b.dataset.titulo;
-    if (b.dataset.vista === 'vista-editor') mapa.invalidateSize();
+    if (b.dataset.vista === 'vista-editor') { mapa.invalidateSize(); pintarPrimerosPasos(); }
     if (b.dataset.vista === 'vista-rotacion') pintarRotacion();
     if (b.dataset.vista === 'vista-incidencias') pintarIncidencias();
     if (b.dataset.vista === 'vista-ocupacion') pintarOcupacion();
