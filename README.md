@@ -33,6 +33,13 @@ tardar en ver la versión nueva.
 
 ## Despliegue estático (sin backend)
 
+**En producción: https://patiosdinamicos.com** (Vercel, proyecto `patiosdinamicos`;
+`patiosdinamicos.vercel.app` sigue respondiendo). Dominio registrado en Cloudflare
+Registrar: los registros DNS (A del ápex y CNAME de `www` → `cname.vercel-dns.com`)
+deben estar en **DNS only (nube gris)**; con el proxy naranja Vercel no emite el
+certificado. Publicar: `git push` (si el repo está conectado) o
+`vercel deploy --prod --yes` desde esta carpeta.
+
 No hay build: basta con servir la carpeta. Flujo recomendado (igual que otros
 proyectos del equipo, git → Vercel):
 
