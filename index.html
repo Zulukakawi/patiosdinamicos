@@ -3537,6 +3537,7 @@ async function pintarRotacion() {
 
   html += '<div class="fila-botones" style="margin-bottom:12px;">' +
     '<button class="boton secundario" id="btn-generar-rotacion">🔄 Generar rotación automática</button>' +
+    '<button class="boton peligro" id="btn-vaciar-rotacion" title="Deja todas las celdas vacías (los grupos y el profesorado se conservan)">🗑️ Vaciar la tabla</button>' +
     '<span id="estado-rotacion" style="font-size:12px; color:var(--tinta-suave); align-self:center;">Toca una celda para cambiarla · los cambios se guardan solos.</span></div>';
 
   html += '<div class="envoltura-tabla"><table class="tabla-rotacion"><thead><tr><th>Zona</th>';
@@ -3586,6 +3587,25 @@ async function pintarRotacion() {
   cont.querySelectorAll('td.celda-rot').forEach(td => td.addEventListener('click', e => {
     if (!td.classList.contains('editando')) abrirCeldaRot(td);
   }));
+
+  // Vaciar la tabla en dos toques (confirm() bloquearía la app), con Deshacer en el aviso
+  let confirmarVaciado = null;
+  $('btn-vaciar-rotacion').addEventListener('click', () => {
+    const b = $('btn-vaciar-rotacion');
+    if (!confirmarVaciado) {
+      b.textContent = '¿Seguro? Se borra TODA la rotación de la semana';
+      confirmarVaciado = setTimeout(() => { b.textContent = '🗑️ Vaciar la tabla'; confirmarVaciado = null; }, 6000);
+      return;
+    }
+    clearTimeout(confirmarVaciado); confirmarVaciado = null;
+    const anterior = rotacionActual.dias.map(d => ({ ...d }));
+    rotacionActual.dias = [{}, {}, {}, {}, {}];
+    pintarRotacion();
+    autoguardarRotacion();
+    avisar('Tabla vaciada: grupos y profesorado se conservan.', { texto: 'Deshacer', fn: () => {
+      rotacionActual.dias = anterior; pintarRotacion(); autoguardarRotacion();
+    } });
+  });
 
   $('btn-generar-rotacion').addEventListener('click', () => {
     const gs = rotacionActual.grupos;
