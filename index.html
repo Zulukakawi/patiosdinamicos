@@ -116,6 +116,14 @@ header.cabecera .centro-activo {
   background: var(--hormigon); border: 1px solid var(--hormigon-2);
   padding: 5px 12px; border-radius: 999px;
 }
+body.modo-demo header.cabecera .centro-activo { background: #fdf3d7; border-color: #ecd9a0; color: #7a5a06; cursor: pointer; }
+body.modo-demo .requiere-cuenta { opacity: .55; }
+/* Marca de agua sobre el cartel en demostración (la impresión está capada) */
+body.modo-demo .cartel::after {
+  content: 'DEMOSTRACIÓN'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: var(--fuente-titulo); font-weight: 800; font-size: 30mm; color: rgba(201,79,42,.32);
+  transform: rotate(-28deg); pointer-events: none; letter-spacing: .05em;
+}
 
 /* ---------- Navegación lateral (asfalto) ---------- */
 nav.principal {
@@ -907,6 +915,7 @@ body.modo-hoy .panel-hoy { display: block; }
 }
 #contenedor-cartel { transform-origin: top center; }
 .cartel {
+  position: relative; /* para la marca de agua de demostración */
   background: #fffdf7;
   box-shadow: 0 6px 30px rgba(0,0,0,.4);
   display: flex; flex-direction: column;
@@ -922,7 +931,7 @@ body.modo-hoy .panel-hoy { display: block; }
   font-size: 13mm; line-height: 1.05; letter-spacing: .01em;
 }
 .cartel .cabecera-cartel .fecha-cartel {
-  font-size: 6.5mm; color: var(--tinta); text-transform: capitalize; font-weight: 700;
+  font-size: 6.5mm; color: var(--tinta); font-weight: 700;
 }
 .cartel .cabecera-cartel .centro-cartel { font-size: 4.5mm; color: var(--tinta-suave); }
 .cartel .lineas-patio {
@@ -1019,7 +1028,7 @@ body.modo-hoy .panel-hoy { display: block; }
 <!-- ===================== Cabecera ===================== -->
 <header class="cabecera">
   <h1 id="titulo-vista">Configurador de patio</h1>
-  <span class="centro-activo" id="centro-activo">🏫 Modo local · datos solo en este dispositivo</span>
+  <span class="centro-activo" id="centro-activo">🔒 Modo demostración · datos solo en este dispositivo</span>
 </header>
 
 <!-- ===================== Navegación ===================== -->
@@ -1069,7 +1078,7 @@ body.modo-hoy .panel-hoy { display: block; }
       <p class="ayuda">Si el centro tiene varios patios (infantil, primaria…), cada uno guarda sus zonas, rotación y registros por separado.</p>
       <select id="selector-patio" class="selector-patio"></select>
       <div class="fila-botones" style="margin-top:8px;">
-        <button id="btn-patio-nuevo" class="boton secundario pequeno">＋ Nuevo</button>
+        <button id="btn-patio-nuevo" class="boton secundario pequeno requiere-cuenta" data-demo-accion="crear más de un patio">＋ Nuevo</button>
         <button id="btn-patio-renombrar" class="boton secundario pequeno">✏️ Renombrar</button>
         <button id="btn-patio-borrar" class="boton peligro pequeno">Borrar</button>
       </div>
@@ -1101,7 +1110,7 @@ body.modo-hoy .panel-hoy { display: block; }
       <p class="ayuda">El patio se guarda solo en este dispositivo después de cada cambio: no hay que pulsar nada.</p>
       <div id="estado-guardado"></div>
       <div class="fila-botones" style="margin-top:9px;">
-        <button id="btn-exportar" class="boton secundario" disabled>Ver GeoJSON</button>
+        <button id="btn-exportar" class="boton secundario requiere-cuenta" data-demo-accion="exportar el patio" disabled>Ver GeoJSON</button>
         <button id="btn-importar" class="boton secundario">Importar</button>
       </div>
       <div class="fila-botones" style="margin-top:10px;">
@@ -1110,8 +1119,8 @@ body.modo-hoy .panel-hoy { display: block; }
       <hr style="border:none; border-top:1px solid var(--hormigon-2); margin:12px 0 10px;">
       <p class="ayuda">Copia de seguridad manual (o traspaso si no usas la cuenta de la nube): descarga la copia en un equipo y restáurala en otro. Incluye <strong>todos los patios y todos los registros</strong>.</p>
       <div class="fila-botones">
-        <button id="btn-copia-exportar" class="boton secundario pequeno">📦 Descargar copia completa</button>
-        <button id="btn-copia-importar" class="boton secundario pequeno">📥 Restaurar copia</button>
+        <button id="btn-copia-exportar" class="boton secundario pequeno requiere-cuenta" data-demo-accion="descargar copias">📦 Descargar copia completa</button>
+        <button id="btn-copia-importar" class="boton secundario pequeno requiere-cuenta" data-demo-accion="restaurar copias">📥 Restaurar copia</button>
       </div>
       <input type="file" id="entrada-copia" accept=".json,application/json" style="display:none;">
       <div id="confirmar-copia" style="display:none; font-size:12.5px; margin-top:9px; background:#fbe9e2; border-radius:8px; padding:9px 11px;">
@@ -1271,7 +1280,7 @@ body.modo-hoy .panel-hoy { display: block; }
       </p>
       <p style="font-size:12px; color:var(--tinta-suave); text-align:center; margin-top:4px;">
         <button class="enlace" id="btn-ver-tutorial">📖 Ver tutorial</button>
-        · <button class="enlace" id="btn-ver-demo">explorar en modo demostración</button>
+        · <button class="enlace" id="btn-ver-demo">explorar en modo demostración</button> <span style="opacity:.75;">(sin imprimir ni exportar)</span>
       </p>
     </div>
     <!-- Solicitar una cuenta -->
@@ -1499,7 +1508,7 @@ body.modo-hoy .panel-hoy { display: block; }
     <button class="boton secundario pequeno" id="cartel-girar-izq">⟲ 15°</button>
     <button class="boton secundario pequeno" id="cartel-girar-der">⟳ 15°</button>
     <button class="boton secundario pequeno" id="cartel-girar-auto">Encaje automático</button>
-    <button class="boton" id="cartel-imprimir">🖨️ Imprimir</button>
+    <button class="boton requiere-cuenta" id="cartel-imprimir" data-demo-accion="imprimir el cartel">🖨️ Imprimir</button>
     <button class="boton secundario pequeno" id="cartel-cerrar">✕ Cerrar</button>
   </div>
   <div id="contenedor-cartel">
@@ -3346,7 +3355,7 @@ async function generarCartel() {
   cartel.innerHTML = `
     <div class="cabecera-cartel">
       <h2>¡El patio de hoy!</h2>
-      <div class="fecha-cartel">${hoy}</div>
+      <div class="fecha-cartel">${hoy.charAt(0).toUpperCase() + hoy.slice(1)}</div>
       <div class="centro-cartel">${esc(nombreCentroActual() || 'Mi centro')} · Patios Dinámicos La Rioja</div>
       <div class="lineas-patio">${lineas}</div>
     </div>
@@ -3982,7 +3991,7 @@ async function pintarEncuestas() {
       <div class="paso-titulo"><span class="paso">${esAlumnado ? 2 : 1}</span> ¿Cómo la vas a pasar?</div>
       <div class="botonera-grande">
         <button id="btn-abrir-kiosco"><span class="ic">🖥️</span>Kiosco en este dispositivo</button>
-        <button id="btn-imprimir-formulario"><span class="ic">🖨️</span>Formulario de papel</button>
+        <button data-demo-accion="imprimir la encuesta en papel" class="requiere-cuenta" id="btn-imprimir-formulario"><span class="ic">🖨️</span>Formulario de papel</button>
         <button id="btn-abrir-volcado"><span class="ic">📥</span>Volcar papel ya pasado</button>
       </div>
       <p style="font-size:12px; color:var(--tinta-suave); margin-top:8px;">
@@ -4543,9 +4552,9 @@ async function pintarPanelCentro() {
       <h4>Exportar datos del patio activo</h4>
       <p style="font-size:12px; color:var(--tinta-suave); margin-bottom:9px;">CSV con punto y coma (se abre directo en Excel/Calc). Útil para la memoria anual del centro.</p>
       <div class="fila-botones">
-        <button class="boton secundario pequeno" id="csv-incidencias" ${incs.length ? '' : 'disabled'}>⬇️ Incidencias (${incs.length})</button>
-        <button class="boton secundario pequeno" id="csv-ocupacion" ${ocups.length ? '' : 'disabled'}>⬇️ Recuentos (${ocups.length})</button>
-        <button class="boton secundario pequeno" id="csv-encuestas" ${encs.length ? '' : 'disabled'}>⬇️ Encuestas (${encs.length})</button>
+        <button class="boton secundario pequeno requiere-cuenta" data-demo-accion="exportar datos" id="csv-incidencias" ${incs.length ? '' : 'disabled'}>⬇️ Incidencias (${incs.length})</button>
+        <button class="boton secundario pequeno requiere-cuenta" data-demo-accion="exportar datos" id="csv-ocupacion" ${ocups.length ? '' : 'disabled'}>⬇️ Recuentos (${ocups.length})</button>
+        <button class="boton secundario pequeno requiere-cuenta" data-demo-accion="exportar datos" id="csv-encuestas" ${encs.length ? '' : 'disabled'}>⬇️ Encuestas (${encs.length})</button>
       </div>
     </div>`;
 
@@ -5306,18 +5315,19 @@ function pintarCabeceraCentro() {
   if (nav) {
     nav.textContent = admin ? 'Orientación regional' : (nombre || 'Mi centro');
     est.textContent = Nube.esCentro() ? '☁️ Conectado a la nube' : admin ? 'Cuenta de administración'
-      : Nube.conectada() ? 'Cuenta sin centro asignado' : (nombre ? 'Modo local · sin cuenta' : 'Toca para poner el nombre');
+      : Nube.conectada() ? 'Cuenta sin centro asignado' : (nombre ? '🔒 Modo demostración' : 'Toca para poner el nombre');
     $('bloque-centro').title = admin ? 'Cuenta de orientación regional' : 'Cambiar el nombre del centro';
     $('bloque-centro').disabled = admin;
   }
   if (mov) mov.textContent = admin ? 'Orientación regional' : nombre;
   document.body.classList.toggle('con-nombre-centro', !!(admin || nombre));
+  document.body.classList.toggle('modo-demo', !Nube.conectada());
   const el = $('centro-activo');
   if (el) {
     if (Nube.esCentro() && Nube.centro) { el.innerHTML = '☁️ Sincronizado con la nube'; el.title = 'Centro conectado a la nube'; }
     else if (admin) { el.innerHTML = '🔬 Orientación regional'; el.title = 'Cuenta de orientación regional'; }
     else if (Nube.conectada()) { el.innerHTML = '🏫 Cuenta sin centro asignado'; el.title = ''; }
-    else { el.innerHTML = '📴 Modo local · datos solo en este dispositivo'; el.title = 'Sin cuenta: entra desde 👤 para sincronizar entre dispositivos'; }
+    else { el.innerHTML = '🔒 Modo demostración · datos solo en este dispositivo · <u>Solicitar cuenta</u>'; el.title = 'Sin cuenta no se puede imprimir, exportar ni sincronizar. Pide la cuenta a orientación.'; }
   }
   const textoBtn = Nube.esCentro() && Nube.centro ? '👤 Mi cuenta'
     : admin ? '👤 Regional' : '👤 Entrar';
@@ -5469,6 +5479,20 @@ $('velo-tutorial').addEventListener('click', e => { if (e.target === $('velo-tut
 $('perfil-eleccion-centro').addEventListener('click', () => aplicarPerfil('centro'));
 $('btn-cambiar-perfil').addEventListener('click', abrirModalInicio);
 $('bloque-centro').addEventListener('click', () => { if (!Nube.esAdmin()) abrirModalNombreCentro(); });
+
+/* ---- Modo demostración (sin cuenta): se puede probar todo, pero nada sale del
+   dispositivo (imprimir, exportar, copias) ni se crean más patios. El bloqueo se
+   hace en fase de captura para adelantarse al listener propio de cada botón. ---- */
+function abrirSolicitudCuenta() { abrirModalInicio(); mostrarVistaInicio('solicitud'); }
+document.addEventListener('click', e => {
+  if (!document.body.classList.contains('modo-demo')) return;
+  const el = e.target.closest && e.target.closest('.requiere-cuenta');
+  if (!el) return;
+  e.preventDefault(); e.stopPropagation();
+  avisar(`🔒 En modo demostración no se puede ${el.dataset.demoAccion || 'usar esta función'}. Con la cuenta del centro, sí.`,
+    { texto: 'Solicitar cuenta', fn: abrirSolicitudCuenta });
+}, true);
+$('centro-activo').addEventListener('click', () => { if (document.body.classList.contains('modo-demo')) abrirSolicitudCuenta(); });
 $('btn-cuenta-movil').addEventListener('click', abrirModalInicio);
 
 /* ---- Modal: nombre del centro ---- */
